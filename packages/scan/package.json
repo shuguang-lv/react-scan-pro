@@ -1,17 +1,17 @@
 {
-  "name": "react-scan",
-  "version": "0.5.7",
+  "name": "react-scan-pro",
+  "version": "0.1.0",
   "description": "Scan your React app for renders",
   "keywords": [
     "performance",
     "react",
     "react scan",
-    "react-scan",
+    "react-scan-pro",
     "render"
   ],
-  "homepage": "https://react-scan.million.dev",
+  "homepage": "https://github.com/shuguang-lv/react-scan-pro",
   "bugs": {
-    "url": "https://github.com/aidenybai/react-scan/issues"
+    "url": "https://github.com/shuguang-lv/react-scan-pro/issues"
   },
   "license": "MIT",
   "author": {
@@ -21,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aidenybai/react-scan.git"
+    "url": "git+https://github.com/shuguang-lv/react-scan-pro.git"
   },
   "bin": "bin/cli.js",
   "files": [
@@ -122,26 +122,26 @@
     "./auto": {
       "production": {
         "import": {
-          "types": "./dist/rsc-shim.d.mts",
+          "types": "./dist/index.d.mts",
           "react-server": "./dist/rsc-shim.mjs",
           "default": "./dist/rsc-shim.mjs"
         },
         "require": {
-          "types": "./dist/rsc-shim.d.ts",
+          "types": "./dist/index.d.ts",
           "react-server": "./dist/rsc-shim.js",
           "default": "./dist/rsc-shim.js"
         }
       },
       "development": {
         "import": {
-          "types": "./dist/auto.d.mts",
+          "types": "./dist/auto.d.ts",
           "react-server": "./dist/rsc-shim.mjs",
-          "default": "./dist/auto.mjs"
+          "default": "./dist/auto.global.js"
         },
         "require": {
           "types": "./dist/auto.d.ts",
           "react-server": "./dist/rsc-shim.js",
-          "default": "./dist/auto.js"
+          "default": "./dist/auto.global.js"
         }
       }
     },
@@ -200,7 +200,7 @@
     "dev:tsup": "NODE_ENV=development tsup --watch",
     "dev": "pnpm run --parallel \"/^dev:(css|tsup)/\"",
     "pack": "npm version patch && pnpm build && npm pack",
-    "pack:bump": "node scripts/bump-version.mjs && pnpm run pack && echo $(pwd)/react-scan-$(node -p \"require('./package.json').version\").tgz | pbcopy",
+    "pack:bump": "node scripts/bump-version.mjs && pnpm run pack && echo $(pwd)/react-scan-pro-$(node -p \"require('./package.json').version\").tgz | pbcopy",
     "publint": "publint",
     "test": "vp test run",
     "test:watch": "vp test",

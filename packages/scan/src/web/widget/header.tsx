@@ -62,9 +62,10 @@ export const Header = () => {
     };
   }, []);
 
-  const isHeaderIsNotifications = signalWidgetViews.value.view === "notifications";
+  const isStandalonePanel =
+    signalWidgetViews.value.view === "notifications" || signalWidgetViews.value.view === "reports";
 
-  if (isHeaderIsNotifications) {
+  if (isStandalonePanel) {
     return;
   }
 
@@ -72,9 +73,11 @@ export const Header = () => {
   const copyShortcutLabel = isMac() ? "⌘C" : "Ctrl+C";
 
   return (
-    <div className="react-scan-header">
+    <div className="react-scan-pro-header">
       <div className="relative flex-1 h-full">
-        <div className={cn("react-scan-header-item is-visible", !isInitialView && "!duration-0")}>
+        <div
+          className={cn("react-scan-pro-header-item is-visible", !isInitialView && "!duration-0")}
+        >
           <HeaderInspect />
         </div>
       </div>
@@ -83,7 +86,7 @@ export const Header = () => {
         <button
           type="button"
           title={`Copy element (${copyShortcutLabel})`}
-          className="react-scan-close-button"
+          className="react-scan-pro-close-button"
           onClick={handleCopy}
         >
           <Icon
@@ -93,7 +96,12 @@ export const Header = () => {
         </button>
       )}
 
-      <button type="button" title="Close" className="react-scan-close-button" onClick={handleClose}>
+      <button
+        type="button"
+        title="Close"
+        className="react-scan-pro-close-button"
+        onClick={handleClose}
+      >
         <Icon name="icon-close" />
       </button>
     </div>

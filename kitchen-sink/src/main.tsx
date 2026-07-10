@@ -1,5 +1,5 @@
-import { type JSX, useState } from 'react';
-import './main.css';
+import { type JSX, useState } from "react";
+import "./main.css";
 
 interface Example {
   title: string;
@@ -7,8 +7,8 @@ interface Example {
 }
 
 const examples: Example[] = [
-  { title: 'Sierpinski Triangle', url: '/?example=sierpinski' },
-  { title: 'Todo List', url: '/?example=todo-list' },
+  { title: "Sierpinski Triangle", url: "/?example=sierpinski" },
+  { title: "Todo List", url: "/?example=todo-list" },
 ];
 
 export default function Home(): JSX.Element {
@@ -17,7 +17,7 @@ export default function Home(): JSX.Element {
   return (
     <div className="flex flex-col w-screen h-screen">
       <div className="flex flex-none border-b border-gray-950">
-        <h1 className="m-8 font-bold text-3xl">react-scan</h1>
+        <h1 className="m-8 font-bold text-3xl">react-scan-pro</h1>
       </div>
       <div className="flex flex-1">
         {/* content */}

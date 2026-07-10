@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import hljs from 'highlight.js/lib/core';
-import xml from 'highlight.js/lib/languages/xml';
-import javascript from 'highlight.js/lib/languages/javascript';
-import typescript from 'highlight.js/lib/languages/typescript';
-import bash from 'highlight.js/lib/languages/bash';
-import 'highlight.js/styles/github-dark.css';
+import { useState, useEffect, useRef, useCallback } from "react";
+import hljs from "highlight.js/lib/core";
+import xml from "highlight.js/lib/languages/xml";
+import javascript from "highlight.js/lib/languages/javascript";
+import typescript from "highlight.js/lib/languages/typescript";
+import bash from "highlight.js/lib/languages/bash";
+import "highlight.js/styles/github-dark.css";
 
-hljs.registerLanguage('xml', xml);
-hljs.registerLanguage('javascript', javascript);
-hljs.registerLanguage('typescript', typescript);
-hljs.registerLanguage('bash', bash);
+hljs.registerLanguage("xml", xml);
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("typescript", typescript);
+hljs.registerLanguage("bash", bash);
 
 const COPY_FEEDBACK_DURATION_MS = 2000;
 
@@ -31,28 +31,36 @@ interface InstallTab {
 
 const INSTALL_TABS: InstallTab[] = [
   {
-    id: 'cli',
-    label: 'CLI',
-    description: '',
-    lang: 'bash',
-    code: `npx -y react-scan@latest init`,
+    id: "cli",
+    label: "CLI",
+    description: "",
+    lang: "bash",
+    code: `npx -y react-scan-pro@latest init`,
   },
   {
-    id: 'script',
-    label: 'Script Tag',
-    description: <>Paste this before any scripts in your <InlineCode>index.html</InlineCode></>,
-    lang: 'xml',
+    id: "script",
+    label: "Script Tag",
+    description: (
+      <>
+        Paste this before any scripts in your <InlineCode>index.html</InlineCode>
+      </>
+    ),
+    lang: "xml",
     code: `<!-- paste this BEFORE any scripts -->
 <script
   crossOrigin="anonymous"
-  src="//unpkg.com/react-scan/dist/auto.global.js"
+  src="//unpkg.com/react-scan-pro/dist/auto.global.js"
 ></script>`,
   },
   {
-    id: 'nextjs-app',
-    label: 'Next.js (App)',
-    description: <>Add this inside of your <InlineCode>app/layout.tsx</InlineCode></>,
-    lang: 'typescript',
+    id: "nextjs-app",
+    label: "Next.js (App)",
+    description: (
+      <>
+        Add this inside of your <InlineCode>app/layout.tsx</InlineCode>
+      </>
+    ),
+    lang: "typescript",
     code: `import Script from "next/script";
 
 export default function RootLayout({ children }) {
@@ -60,7 +68,7 @@ export default function RootLayout({ children }) {
     <html>
       <head>
         <Script
-          src="//unpkg.com/react-scan/dist/auto.global.js"
+          src="//unpkg.com/react-scan-pro/dist/auto.global.js"
           crossOrigin="anonymous"
           strategy="beforeInteractive"
         />
@@ -71,10 +79,14 @@ export default function RootLayout({ children }) {
 }`,
   },
   {
-    id: 'nextjs-pages',
-    label: 'Next.js (Pages)',
-    description: <>Add this into your <InlineCode>pages/_document.tsx</InlineCode></>,
-    lang: 'typescript',
+    id: "nextjs-pages",
+    label: "Next.js (Pages)",
+    description: (
+      <>
+        Add this into your <InlineCode>pages/_document.tsx</InlineCode>
+      </>
+    ),
+    lang: "typescript",
     code: `import { Html, Head, Main, NextScript } from "next/document";
 import Script from "next/script";
 
@@ -83,7 +95,7 @@ export default function Document() {
     <Html lang="en">
       <Head>
         <Script
-          src="//unpkg.com/react-scan/dist/auto.global.js"
+          src="//unpkg.com/react-scan-pro/dist/auto.global.js"
           crossOrigin="anonymous"
           strategy="beforeInteractive"
         />
@@ -97,16 +109,20 @@ export default function Document() {
 }`,
   },
   {
-    id: 'vite',
-    label: 'Vite',
-    description: <>Example <InlineCode>index.html</InlineCode> with React Scan enabled</>,
-    lang: 'xml',
+    id: "vite",
+    label: "Vite",
+    description: (
+      <>
+        Example <InlineCode>index.html</InlineCode> with React Scan Pro enabled
+      </>
+    ),
+    lang: "xml",
     code: `<!doctype html>
 <html lang="en">
   <head>
     <script
       crossOrigin="anonymous"
-      src="//unpkg.com/react-scan/dist/auto.global.js"
+      src="//unpkg.com/react-scan-pro/dist/auto.global.js"
     ></script>
   </head>
   <body>
@@ -116,10 +132,14 @@ export default function Document() {
 </html>`,
   },
   {
-    id: 'remix',
-    label: 'Remix',
-    description: <>Add this inside your <InlineCode>app/root.tsx</InlineCode></>,
-    lang: 'typescript',
+    id: "remix",
+    label: "Remix",
+    description: (
+      <>
+        Add this inside your <InlineCode>app/root.tsx</InlineCode>
+      </>
+    ),
+    lang: "typescript",
     code: `import { Links, Meta, Outlet, Scripts } from "@remix-run/react";
 
 export default function App() {
@@ -129,7 +149,7 @@ export default function App() {
         <Meta />
         <script
           crossOrigin="anonymous"
-          src="//unpkg.com/react-scan/dist/auto.global.js"
+          src="//unpkg.com/react-scan-pro/dist/auto.global.js"
         />
         <Links />
       </head>
@@ -177,11 +197,10 @@ const CheckIcon = () => (
 export default function InstallGuide() {
   const [activeTabId, setActiveTabId] = useState(INSTALL_TABS[0].id);
   const [didCopy, setDidCopy] = useState(false);
-  const [height, setHeight] = useState('auto');
+  const [height, setHeight] = useState("auto");
   const contentRef = useRef<HTMLPreElement>(null);
 
-  const activeTab =
-    INSTALL_TABS.find((tab) => tab.id === activeTabId) ?? INSTALL_TABS[0];
+  const activeTab = INSTALL_TABS.find((tab) => tab.id === activeTabId) ?? INSTALL_TABS[0];
 
   const highlightedCode = hljs.highlight(activeTab.code, {
     language: activeTab.lang,
@@ -211,18 +230,18 @@ export default function InstallGuide() {
   };
 
   const headingText =
-    activeTabId === 'cli'
-      ? 'Run this command to get started:'
-      : 'It takes 1 script tag to get started:';
+    activeTabId === "cli"
+      ? "Run this command to get started:"
+      : "It takes 1 script tag to get started:";
 
   return (
     <div>
       <span className="hidden sm:inline text-white">
         {headingText}
-        {activeTabId === 'cli' && (
+        {activeTabId === "cli" && (
           <button
             type="button"
-            onClick={() => handleTabChange('script')}
+            onClick={() => handleTabChange("script")}
             className="ml-3 text-xs italic text-white/40 hover:text-white/60 hover:underline transition-colors sm:text-sm"
           >
             Prefer manual install?
@@ -239,8 +258,8 @@ export default function InstallGuide() {
                 type="button"
                 className={`shrink-0 whitespace-nowrap border-b pb-2 font-sans text-sm transition-colors sm:text-base ${
                   isActive
-                    ? 'border-white text-white'
-                    : 'border-transparent text-white/60 hover:text-white'
+                    ? "border-white text-white"
+                    : "border-transparent text-white/60 hover:text-white"
                 }`}
                 onClick={() => handleTabChange(tab.id)}
               >
@@ -250,13 +269,14 @@ export default function InstallGuide() {
           })}
         </div>
         <div className="relative bg-black/60">
-          {activeTabId === 'cli' ? (
+          {activeTabId === "cli" ? (
             <button
               type="button"
               onClick={handleCopy}
               className="group flex w-full items-center justify-between gap-4 px-4 py-6 transition-colors hover:bg-white/5"
             >
               <pre className="overflow-x-auto font-mono text-base leading-relaxed text-white/80">
+                {/* oxlint-disable-next-line react/no-danger */}
                 <code dangerouslySetInnerHTML={{ __html: highlightedCode }} />
               </pre>
               <span className="shrink-0 text-white/50 transition-colors group-hover:text-white">
@@ -281,6 +301,7 @@ export default function InstallGuide() {
                   ref={contentRef}
                   className="overflow-x-auto p-4 font-mono text-[13px] leading-relaxed text-white/80"
                 >
+                  {/* oxlint-disable-next-line react/no-danger */}
                   <code dangerouslySetInnerHTML={{ __html: highlightedCode }} />
                 </pre>
               </div>
@@ -288,7 +309,7 @@ export default function InstallGuide() {
           )}
         </div>
       </div>
-      {activeTab.id !== 'cli' && activeTab.description && (
+      {activeTab.id !== "cli" && activeTab.description && (
         <span className="mt-4 block text-sm text-white/50 sm:text-base">
           {activeTab.description}
         </span>

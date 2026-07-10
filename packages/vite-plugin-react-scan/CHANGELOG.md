@@ -1,4 +1,4 @@
-# @react-scan/vite-plugin-react-scan
+# @react-scan-pro/vite-plugin
 
 ## 0.2.7
 
@@ -6,7 +6,7 @@
 
 - fix
 - Updated dependencies
-  - react-scan@0.5.7
+  - react-scan-pro@0.5.7
 
 ## 0.2.6
 
@@ -14,7 +14,7 @@
 
 - fix
 - Updated dependencies
-  - react-scan@0.5.6
+  - react-scan-pro@0.5.6
 
 ## 0.2.5
 
@@ -22,7 +22,7 @@
 
 - fix
 - Updated dependencies
-  - react-scan@0.5.5
+  - react-scan-pro@0.5.5
 
 ## 0.2.4
 
@@ -30,7 +30,7 @@
 
 - lite
 - Updated dependencies
-  - react-scan@0.5.4
+  - react-scan-pro@0.5.4
 
 ## 0.2.3
 
@@ -38,7 +38,7 @@
 
 - fix
 - Updated dependencies
-  - react-scan@0.5.3
+  - react-scan-pro@0.5.3
 
 ## 0.2.2
 
@@ -46,7 +46,7 @@
 
 - fix
 - Updated dependencies
-  - react-scan@0.5.2
+  - react-scan-pro@0.5.2
 
 ## 0.2.1
 
@@ -54,7 +54,7 @@
 
 - fix: infinite mounting
 - Updated dependencies
-  - react-scan@0.5.1
+  - react-scan-pro@0.5.1
 
 ## 0.2.0
 
@@ -66,4 +66,4 @@
 
 - Updated dependencies
 - Updated dependencies [9d38ffe]
-  - react-scan@0.5.0
+  - react-scan-pro@0.5.0

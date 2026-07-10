@@ -1,44 +1,35 @@
-import browser from 'webextension-polyfill';
-import {
-  type BroadcastMessage,
-  BroadcastSchema,
-  type IEvents,
-} from '~types/messages';
-import { busDispatch, busSubscribe } from '~utils/helpers';
+import browser from "webextension-polyfill";
+import { type BroadcastMessage, BroadcastSchema, type IEvents } from "~types/messages";
+import { busDispatch, busSubscribe } from "~utils/helpers";
 
-chrome.runtime.onMessage.addListener(
-  async (message: unknown, _sender, sendResponse) => {
-    const result = BroadcastSchema.safeParse(message);
-    if (!result.success) {
-      return false;
-    }
-
-    const data = result.data;
-
-    if (data.type === 'react-scan:ping') {
-      sendResponse({ pong: true });
-      return false;
-    }
-
-    if (data.type === 'react-scan:page-reload') {
-      window.location.reload();
-      return false;
-    }
-
-    if (data.type === 'react-scan:toggle-state') {
-      busDispatch<IEvents['react-scan:toggle-state']>(
-        'react-scan:toggle-state',
-        {
-          topic: 'react-scan:toggle-state',
-          message: undefined,
-        },
-      );
-      return false;
-    }
-
+chrome.runtime.onMessage.addListener(async (message: unknown, _sender, sendResponse) => {
+  const result = BroadcastSchema.safeParse(message);
+  if (!result.success) {
     return false;
-  },
-);
+  }
+
+  const data = result.data;
+
+  if (data.type === "react-scan-pro:ping") {
+    sendResponse({ pong: true });
+    return false;
+  }
+
+  if (data.type === "react-scan-pro:page-reload") {
+    window.location.reload();
+    return false;
+  }
+
+  if (data.type === "react-scan-pro:toggle-state") {
+    busDispatch<IEvents["react-scan-pro:toggle-state"]>("react-scan-pro:toggle-state", {
+      topic: "react-scan-pro:toggle-state",
+      message: undefined,
+    });
+    return false;
+  }
+
+  return false;
+});
 
 const sendMessageToBackground = ({ type, data }: BroadcastMessage) => {
   try {
@@ -48,8 +39,8 @@ const sendMessageToBackground = ({ type, data }: BroadcastMessage) => {
   }
 };
 
-busSubscribe<IEvents['react-scan:send-to-background']>(
-  'react-scan:send-to-background',
+busSubscribe<IEvents["react-scan-pro:send-to-background"]>(
+  "react-scan-pro:send-to-background",
   (event) => {
     sendMessageToBackground(event.message);
   },

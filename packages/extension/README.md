@@ -1,7 +1,6 @@
-# React Scanner Extension
+# React Scan Proner Extension
 
 Browser extension for scanning React applications and identifying performance issues.
-
 
 ### Environment Variables
 
@@ -19,19 +18,23 @@ BRAVE_BINARY="/usr/bin/brave"
 ```
 
 ### Development Setup
+
 #### For Chrome
+
 1. Run development server:
    ```bash
    pnpm dev
    ```
-3. This will automatically open Chrome with the extension loaded.
+2. This will automatically open Chrome with the extension loaded.
 
 <i>If you need to inspect the extension, open `chrome://extensions` in Chrome</i>
+
 #### For Firefox
 
 <br />
 
 #### For Firefox
+
 1. Run development server:
    ```bash
    pnpm dev:firefox
@@ -45,6 +48,7 @@ BRAVE_BINARY="/usr/bin/brave"
 #### For Brave
 
 1. Run development server:
+
    ```bash
    pnpm dev:brave
    ```
@@ -64,6 +68,7 @@ pnpm pack:all
 ```
 
 This will create:
+
 - `chrome-extension-v1.0.8.zip`
 - `firefox-extension-v1.0.8.zip`
 - `brave-extension-v1.0.8.zip`

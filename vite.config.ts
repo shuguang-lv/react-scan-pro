@@ -37,11 +37,11 @@ export default defineConfig({
       "no-unused-vars": [
         "warn",
         {
-          "vars": "all",
-          "args": "all",
-          "argsIgnorePattern": "^_",
-          "varsIgnorePattern": "^_",
-          "caughtErrors": "none",
+          vars: "all",
+          args: "all",
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrors: "none",
         },
       ],
       "@typescript-eslint/no-wrapper-object-types": "error",

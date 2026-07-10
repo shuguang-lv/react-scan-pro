@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
 import {
   gotoFixture,
   toolbarWidget,
@@ -6,48 +6,39 @@ import {
   isReactScanActive,
   waitForToolbarReady,
   TOOLBAR_SELECTORS,
-} from './helpers';
+} from "./helpers";
 
-const LOCALSTORAGE_WIDGET_KEY = 'react-scan-widget-settings-v2';
+const LOCALSTORAGE_WIDGET_KEY = "react-scan-pro-widget-settings-v2";
 
-test.describe('Overlay widget container', () => {
+test.describe("Overlay widget container", () => {
   test.beforeEach(async ({ page }) => {
     await gotoFixture(page);
     await waitForToolbarReady(page);
   });
 
-  test('widget mounts with the expected identity attributes', async ({
-    page,
-  }) => {
+  test("widget mounts with the expected identity attributes", async ({ page }) => {
     const widget = toolbarWidget(page);
     await expect(widget).toBeVisible();
-    await expect(widget).toHaveAttribute('dir', 'ltr');
+    await expect(widget).toHaveAttribute("dir", "ltr");
   });
 
-  test('widget fades in to full opacity', async ({ page }) => {
+  test("widget fades in to full opacity", async ({ page }) => {
     await expect
-      .poll(async () =>
-        toolbarWidget(page).evaluate((el) =>
-          Number(getComputedStyle(el).opacity),
-        ),
-      )
+      .poll(async () => toolbarWidget(page).evaluate((el) => Number(getComputedStyle(el).opacity)))
       .toBeGreaterThan(0.9);
   });
 
-  test('all four resize handles are present in the DOM', async ({ page }) => {
+  test("all four resize handles are present in the DOM", async ({ page }) => {
     const handles = page.locator(
       `${TOOLBAR_SELECTORS.root} .resize-left, ${TOOLBAR_SELECTORS.root} .resize-right, ${TOOLBAR_SELECTORS.root} .resize-top, ${TOOLBAR_SELECTORS.root} .resize-bottom`,
     );
     await expect(handles).toHaveCount(4);
   });
 
-  test('widget settings are persisted to localStorage', async ({ page }) => {
+  test("widget settings are persisted to localStorage", async ({ page }) => {
     await expect
       .poll(async () =>
-        page.evaluate(
-          (key) => localStorage.getItem(key) !== null,
-          LOCALSTORAGE_WIDGET_KEY,
-        ),
+        page.evaluate((key) => localStorage.getItem(key) !== null, LOCALSTORAGE_WIDGET_KEY),
       )
       .toBe(true);
 
@@ -60,7 +51,7 @@ test.describe('Overlay widget container', () => {
     expect(settings.dimensions).toBeTruthy();
   });
 
-  test('widget survives repeated host-app interactions', async ({ page }) => {
+  test("widget survives repeated host-app interactions", async ({ page }) => {
     for (let clickIndex = 0; clickIndex < 5; clickIndex++) {
       await page.click('[data-testid="increment"]');
     }
@@ -68,7 +59,7 @@ test.describe('Overlay widget container', () => {
     expect(await isReactScanActive(page)).toBe(true);
   });
 
-  test('opening a panel expands the widget', async ({ page }) => {
+  test("opening a panel expands the widget", async ({ page }) => {
     const minimizedBox = await toolbarWidget(page).boundingBox();
     expect(minimizedBox).not.toBeNull();
 

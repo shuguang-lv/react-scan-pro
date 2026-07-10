@@ -1,7 +1,6 @@
-import { useState } from 'react';
-import { scan, Store } from 'react-scan';
-import './styles.css';
-
+import { useState } from "react";
+import { scan, Store } from "react-scan-pro";
+import "./styles.css";
 
 Store.isInIframe.value = false;
 scan({
@@ -22,15 +21,15 @@ interface TodoListItemProps {
 
 function TodoListItem({ item, setList }: TodoListItemProps): JSX.Element {
   return (
-    <div className={`todo-item ${item.done ? 'complete' : 'pending'}`}>
+    <div className={`todo-item ${item.done ? "complete" : "pending"}`}>
       <div className="todo-item-content">{item.message}</div>
       <div className="todo-item-actions">
         <button
           type="button"
-          className={`todo-item-toggle ${item.done ? 'complete' : 'pending'}`}
+          className={`todo-item-toggle ${item.done ? "complete" : "pending"}`}
           onClick={(): void => {
-            setList(list =>
-              list.map(value => {
+            setList((list) =>
+              list.map((value) => {
                 if (value === item) {
                   return {
                     ...value,
@@ -42,13 +41,13 @@ function TodoListItem({ item, setList }: TodoListItemProps): JSX.Element {
             );
           }}
         >
-          {item.done ? 'Completed' : 'Pending'}
+          {item.done ? "Completed" : "Pending"}
         </button>
         <button
           type="button"
           className="todo-item-delete"
           onClick={(): void => {
-            setList(list => list.filter(value => value.id !== item.id));
+            setList((list) => list.filter((value) => value.id !== item.id));
           }}
         >
           Delete
@@ -64,12 +63,8 @@ interface TodoListFormProps {
   setList: (action: (list: TodoItem[]) => TodoItem[]) => void;
 }
 
-function TodoListForm({
-  setList,
-  index,
-  setIndex,
-}: TodoListFormProps): JSX.Element {
-  const [message, setMessage] = useState('');
+function TodoListForm({ setList, index, setIndex }: TodoListFormProps): JSX.Element {
+  const [message, setMessage] = useState("");
 
   return (
     <form
@@ -77,7 +72,7 @@ function TodoListForm({
       onSubmit={(e): void => {
         e.preventDefault();
 
-        setList(list => [
+        setList((list) => [
           ...list,
           {
             done: false,
@@ -86,7 +81,7 @@ function TodoListForm({
           },
         ]);
         setIndex(index + 1);
-        setMessage('');
+        setMessage("");
       }}
     >
       <input
@@ -96,7 +91,7 @@ function TodoListForm({
           setMessage((e.target as HTMLInputElement).value);
         }}
       />
-      <button type="submit" disabled={message === ''}>
+      <button type="submit" disabled={message === ""}>
         Add
       </button>
     </form>
@@ -110,7 +105,7 @@ function TodoList(): JSX.Element {
     <>
       <TodoListForm setList={setList} index={index} setIndex={setIndex} />
       <div className="todo-list">
-        {list.map(item => (
+        {list.map((item) => (
           <TodoListItem key={item.id} item={item} setList={setList} />
         ))}
       </div>

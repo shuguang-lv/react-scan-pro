@@ -19,7 +19,7 @@ export default function Home() {
         didn&apos;t have a simple, portable&nbsp;API.
       </div>
 
-      <div className="text-pretty text-white/70">Instead, React Scan:</div>
+      <div className="text-pretty text-white/70">Instead, React Scan Pro:</div>
       <ul className="flex flex-col gap-1.5 text-white/70 pl-5 list-disc marker:text-white/30">
         <li>Requires no code changes</li>
         <li>Highlights exactly the components you need to optimize</li>
@@ -30,7 +30,7 @@ export default function Home() {
 
       <div className="flex gap-3 pt-2">
         <Link
-          href="https://github.com/aidenybai/react-scan#install"
+          href="https://github.com/shuguang-lv/react-scan-pro#install"
           className="inline-flex items-center gap-2 rounded-md border border-white/20 bg-white px-3 py-1.5 text-sm text-black transition-all hover:bg-white/90 active:scale-[0.98] sm:text-base"
         >
           <IconGithub className="h-[18px] w-[18px]" />

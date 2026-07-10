@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "React Scan",
+  "name": "React Scan Pro",
   "version": "0.0.0",
   "description": "Scan React apps for performance problems",
   "icons": {

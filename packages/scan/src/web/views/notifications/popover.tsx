@@ -6,11 +6,11 @@ import {
   useEffect,
   useRef,
   useState,
-} from 'preact/compat';
-import { cn } from '~web/utils/helpers';
-import { ToolbarElementContext } from '~web/widget';
+} from "preact/compat";
+import { cn } from "~web/utils/helpers";
+import { ToolbarElementContext } from "~web/widget";
 
-type PopoverState = 'closed' | 'opening' | 'open' | 'closing';
+type PopoverState = "closed" | "opening" | "open" | "closing";
 
 /**
  *
@@ -23,9 +23,9 @@ export const Popover = ({
 }: {
   children: ReactNode;
   triggerContent: ReactNode;
-  wrapperProps?: ComponentProps<'div'>;
+  wrapperProps?: ComponentProps<"div">;
 }) => {
-  const [popoverState, setPopoverState] = useState<PopoverState>('closed');
+  const [popoverState, setPopoverState] = useState<PopoverState>("closed");
   const [elBoundingRect, setElBoundingRect] = useState<DOMRect | null>(null);
   const [viewportSize, setViewportSize] = useState({
     width: window.innerWidth,
@@ -45,8 +45,8 @@ export const Popover = ({
       updateRect();
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const updateRect = () => {
@@ -73,11 +73,11 @@ export const Popover = ({
   }, [triggerRef.current]);
 
   useEffect(() => {
-    if (popoverState === 'opening') {
-      const timer = setTimeout(() => setPopoverState('open'), 120);
+    if (popoverState === "opening") {
+      const timer = setTimeout(() => setPopoverState("open"), 120);
       return () => clearTimeout(timer);
-    } else if (popoverState === 'closing') {
-      const timer = setTimeout(() => setPopoverState('closed'), 120);
+    } else if (popoverState === "closing") {
+      const timer = setTimeout(() => setPopoverState("closed"), 120);
       return () => clearTimeout(timer);
     }
   }, [popoverState]);
@@ -85,8 +85,8 @@ export const Popover = ({
   // just incase we didn't capture the mouse leave event because the underlying container moved
   useEffect(() => {
     const interval = setInterval(() => {
-      if (!isHoveredRef.current && popoverState !== 'closed') {
-        setPopoverState('closing');
+      if (!isHoveredRef.current && popoverState !== "closed") {
+        setPopoverState("closing");
       }
     }, 1000);
 
@@ -96,13 +96,13 @@ export const Popover = ({
   const handleMouseEnter = () => {
     isHoveredRef.current = true;
     updateRect();
-    setPopoverState('opening');
+    setPopoverState("opening");
   };
 
   const handleMouseLeave = () => {
     isHoveredRef.current = false;
     updateRect();
-    setPopoverState('closing');
+    setPopoverState("closing");
   };
 
   const getPopoverPosition = () => {
@@ -141,30 +141,30 @@ export const Popover = ({
     <>
       {portalEl &&
         elBoundingRect &&
-        popoverState !== 'closed' &&
+        popoverState !== "closed" &&
         createPortal(
           <div
             ref={popoverRef}
             className={cn([
-              'absolute z-100 bg-white text-black rounded-lg px-3 py-2 shadow-lg',
-              'transition-[opacity] duration-120 ease-out',
+              "absolute z-100 bg-white text-black rounded-lg px-3 py-2 shadow-lg",
+              "transition-[opacity] duration-120 ease-out",
               'after:content-[""] after:absolute after:top-[100%]',
-              'after:left-1/2 after:-translate-x-1/2',
-              'after:w-[10px] after:h-[6px]',
-              'after:border-l-[5px] after:border-l-transparent',
-              'after:border-r-[5px] after:border-r-transparent',
-              'after:border-t-[6px] after:border-t-white',
-              'pointer-events-none',
-              popoverState === 'opening' || popoverState === 'closing'
-                ? 'opacity-0'
-                : 'opacity-100',
+              "after:left-1/2 after:-translate-x-1/2",
+              "after:w-[10px] after:h-[6px]",
+              "after:border-l-[5px] after:border-l-transparent",
+              "after:border-r-[5px] after:border-r-transparent",
+              "after:border-t-[6px] after:border-t-white",
+              "pointer-events-none",
+              popoverState === "opening" || popoverState === "closing"
+                ? "opacity-0"
+                : "opacity-100",
             ])}
             style={{
-              top: popoverPosition.top + 'px',
-              left: popoverPosition.left + 'px',
-              transform: `translate(-50%, calc(-100% - 4px)) scale(${popoverState === 'open' ? 1 : 0.97})`,
-              minWidth: '175px',
-              willChange: 'opacity, transform',
+              top: popoverPosition.top + "px",
+              left: popoverPosition.left + "px",
+              transform: `translate(-50%, calc(-100% - 4px)) scale(${popoverState === "open" ? 1 : 0.97})`,
+              minWidth: "175px",
+              willChange: "opacity, transform",
             }}
           >
             {children}

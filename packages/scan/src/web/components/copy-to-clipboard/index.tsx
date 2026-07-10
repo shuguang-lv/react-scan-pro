@@ -1,8 +1,8 @@
-import type { JSX } from 'preact';
-import { memo } from 'preact/compat';
-import { useCallback, useEffect, useState } from 'preact/hooks';
-import { cn } from '~web/utils/helpers';
-import { Icon } from '../icon';
+import type { JSX } from "preact";
+import { memo } from "preact/compat";
+import { useCallback, useEffect, useState } from "preact/hooks";
+import { cn } from "~web/utils/helpers";
+import { Icon } from "../icon";
 
 interface CopyToClipboardProps {
   text: string;
@@ -16,13 +16,7 @@ interface CopyToClipboardProps {
 }
 
 export const CopyToClipboard = /* @__PURE__ */ memo(
-  ({
-    text,
-    children,
-    onCopy,
-    className,
-    iconSize = 14,
-  }: CopyToClipboardProps): JSX.Element => {
+  ({ text, children, onCopy, className, iconSize = 14 }: CopyToClipboardProps): JSX.Element => {
     const [isCopied, setIsCopied] = useState(false);
 
     useEffect(() => {
@@ -57,19 +51,19 @@ export const CopyToClipboard = /* @__PURE__ */ memo(
         onClick={copyToClipboard}
         type="button"
         className={cn(
-          'z-10',
-          'flex items-center justify-center',
-          'hover:text-dev-pink-400',
-          'transition-colors duration-200 ease-in-out',
-          'cursor-pointer',
+          "z-10",
+          "flex items-center justify-center",
+          "hover:text-dev-pink-400",
+          "transition-colors duration-200 ease-in-out",
+          "cursor-pointer",
           `size-[${iconSize}px]`,
           className,
         )}
       >
         <Icon
-          name={`icon-${isCopied ? 'check' : 'copy'}`}
+          name={`icon-${isCopied ? "check" : "copy"}`}
           size={[iconSize]}
-          className={cn(isCopied && 'text-green-500')}
+          className={cn(isCopied && "text-green-500")}
         />
       </button>
     );

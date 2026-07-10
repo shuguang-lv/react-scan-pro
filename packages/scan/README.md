@@ -1,6 +1,6 @@
-# <img src="https://github.com/aidenybai/react-scan/blob/main/.github/assets/logo.svg" width="30" height="30" align="center" /> React Scan
+# <img src="https://github.com/shuguang-lv/react-scan-pro/blob/main/.github/assets/logo.svg" width="30" height="30" align="center" /> React Scan Pro
 
-React Scan automatically detects performance issues in your React app.
+React Scan Pro automatically detects performance issues in your React app.
 
 Previously, tools like:
 
@@ -8,7 +8,7 @@ Previously, tools like:
 - [Why Did You Render?](https://github.com/welldone-software/why-did-you-render) lacked simple visual cues
 - [React Devtools](https://legacy.reactjs.org/blog/2018/09/10/introducing-the-react-profiler.html) didn't have a simple, portable, and programmatic API
 
-React Scan attempts to solve these problems:
+React Scan Pro attempts to solve these problems:
 
 - It requires no code changes – just drop it in
 - It highlights exactly the components you need to optimize
@@ -16,55 +16,55 @@ React Scan attempts to solve these problems:
 
 Trusted by engineering teams at:
 
-Airbnb&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://polaris.shopify.com/"><img src="https://raw.githubusercontent.com/aidenybai/react-scan/refs/heads/main/.github/assets/shopify-logo.png" height="30" align="center" /></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.faire.com/"><img src="https://raw.githubusercontent.com/aidenybai/react-scan/refs/heads/main/.github/assets/faire-logo.svg" height="20" align="center" /></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://perplexity.com/"><img src="https://raw.githubusercontent.com/aidenybai/react-scan/refs/heads/main/.github/assets/perplexity-logo.png" height="30" align="center" /></a>
+Airbnb&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://polaris.shopify.com/"><img src="https://raw.githubusercontent.com/shuguang-lv/react-scan-pro/refs/heads/main/.github/assets/shopify-logo.png" height="30" align="center" /></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://www.faire.com/"><img src="https://raw.githubusercontent.com/shuguang-lv/react-scan-pro/refs/heads/main/.github/assets/faire-logo.svg" height="20" align="center" /></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="https://perplexity.com/"><img src="https://raw.githubusercontent.com/shuguang-lv/react-scan-pro/refs/heads/main/.github/assets/perplexity-logo.png" height="30" align="center" /></a>
 
-### [**Try it out! →**](https://react-scan.million.dev)
+### [**Try it out! →**](https://github.com/shuguang-lv/react-scan-pro)
 
-![React Scan in action](https://raw.githubusercontent.com/aidenybai/react-scan/refs/heads/main/.github/assets/demo.gif)
+![React Scan Pro in action](https://raw.githubusercontent.com/shuguang-lv/react-scan-pro/refs/heads/main/.github/assets/demo.gif)
 
 ## Install
 
 ### Package managers
 
 ```bash
-npm i react-scan
+npm i react-scan-pro
 ```
 
 ```bash
-pnpm add react-scan
+pnpm add react-scan-pro
 ```
 
 ```bash
-yarn add react-scan
+yarn add react-scan-pro
 ```
 
 ### CDN
 
 ```html
 <!-- import this BEFORE any scripts -->
-<script src="https://unpkg.com/react-scan/dist/auto.global.js"></script>
+<script src="https://unpkg.com/react-scan-pro/dist/auto.global.js"></script>
 ```
 
 ## Usage
 
-- [NextJS App Router](https://github.com/aidenybai/react-scan/blob/main/docs/installation/next-js-app-router.md)
-- [NextJS Page Router](https://github.com/aidenybai/react-scan/blob/main/docs/installation/next-js-page-router.md)
-- [Create React App](https://github.com/aidenybai/react-scan/blob/main/docs/installation/create-react-app.md)
-- [Vite](https://github.com/aidenybai/react-scan/blob/main/docs/installation/vite.md)
-- [Parcel](https://github.com/aidenybai/react-scan/blob/main/docs/installation/parcel.md)
-- [Remix](https://github.com/aidenybai/react-scan/blob/main/docs/installation/remix.md)
-- [React Router](https://github.com/aidenybai/react-scan/blob/main/docs/installation/react-router.md)
-- [Astro](https://github.com/aidenybai/react-scan/blob/main/docs/installation/astro.md)
-- [TanStack Start](https://github.com/aidenybai/react-scan/blob/main/docs/installation/tanstack-start.md)
+- [NextJS App Router](https://github.com/shuguang-lv/react-scan-pro/blob/main/docs/installation/next-js-app-router.md)
+- [NextJS Page Router](https://github.com/shuguang-lv/react-scan-pro/blob/main/docs/installation/next-js-page-router.md)
+- [Create React App](https://github.com/shuguang-lv/react-scan-pro/blob/main/docs/installation/create-react-app.md)
+- [Vite](https://github.com/shuguang-lv/react-scan-pro/blob/main/docs/installation/vite.md)
+- [Parcel](https://github.com/shuguang-lv/react-scan-pro/blob/main/docs/installation/parcel.md)
+- [Remix](https://github.com/shuguang-lv/react-scan-pro/blob/main/docs/installation/remix.md)
+- [React Router](https://github.com/shuguang-lv/react-scan-pro/blob/main/docs/installation/react-router.md)
+- [Astro](https://github.com/shuguang-lv/react-scan-pro/blob/main/docs/installation/astro.md)
+- [TanStack Start](https://github.com/shuguang-lv/react-scan-pro/blob/main/docs/installation/tanstack-start.md)
 
 ### CLI
 
-If you don't have a local version of the site or you want to test a React app remotely, you can use the CLI. This will spin up an isolated browser instance which you can interact or use React Scan with.
+If you don't have a local version of the site or you want to test a React app remotely, you can use the CLI. This will spin up an isolated browser instance which you can interact or use React Scan Pro with.
 
 ```bash
-npx react-scan@latest http://localhost:3000
+npx react-scan-pro@latest http://localhost:3000
 # you can technically scan ANY website on the web:
-# npx react-scan@latest https://react.dev
+# npx react-scan-pro@latest https://react.dev
 ```
 
 You can add it to your existing dev process as well. Here's an example for Next.js:
@@ -73,25 +73,25 @@ You can add it to your existing dev process as well. Here's an example for Next.
 {
   "scripts": {
     "dev": "next dev",
-    "scan": "next dev & npx react-scan@latest localhost:3000"
+    "scan": "next dev & npx react-scan-pro@latest localhost:3000"
   }
 }
 ```
 
 ### Browser Extension
 
-If you want to install the extension, follow the guide [here](https://github.com/aidenybai/react-scan/blob/main/BROWSER_EXTENSION_GUIDE.md).
+If you want to install the extension, follow the guide [here](https://github.com/shuguang-lv/react-scan-pro/blob/main/BROWSER_EXTENSION_GUIDE.md).
 
 ### React Native
 
-See [discussion](https://github.com/aidenybai/react-scan/pull/23)
+See [discussion](https://github.com/shuguang-lv/react-scan-pro/pull/23)
 
-## `react-scan/lite`: headless instrumentation
+## `react-scan-pro/lite`: headless instrumentation
 
 A tiny, UI-less entry point that taps into the same React DevTools profiling channel the Timeline Profiler uses. No toolbar, no canvas, no styles. Just a stream of commit / render / state-update events you can pipe to a callback or POST to an endpoint. Pairs naturally with a `long-animation-frame` `PerformanceObserver` so you can attribute a slow LoAF to a specific component subtree.
 
 ```ts
-import { instrument } from "react-scan/lite";
+import { instrument } from "react-scan-pro/lite";
 
 const handle = instrument({
   onEvent: (event) => console.log(event),
@@ -102,8 +102,8 @@ const handle = instrument({
 
   // optional: enrich each fiber summary
   recordChangeDescriptions: true, // why did this re-render? (props/state/context/hooks/parent)
-  includeFiberSource: true,       // file:line of each fiber's JSX call site
-  includeFiberIdentity: true,     // stable id across commits, for cascade histograms
+  includeFiberSource: true, // file:line of each fiber's JSX call site
+  includeFiberIdentity: true, // stable id across commits, for cascade histograms
 });
 
 handle.subscribe((event) => {
@@ -125,14 +125,14 @@ handle.stop(); // idempotent
 
 ### Per-fiber enrichment
 
-| Option                       | Default | What you get                                                                                                        |
-| ---------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------- |
-| `recordChangeDescriptions`   | `false` | `changeDescription: { isFirstMount, props[], state, context, hooks[], parent }` per fiber. Answers "why this re-rendered" in a single event. |
-| `includeFiberSource`         | `false` | `source: { fileName, lineNumber, columnNumber }` + `ownerName`, read from `_debugSource` (R16/17/18) or `_debugStack` (R19+). Sync, no symbolication. |
-| `includeFiberIdentity`       | `false` | `fiberId: number`, stable monotonic id per logical fiber (alternate-aware), so the agent can build cross-commit histograms. |
-| `includeLaneLabels`          | `true`  | `laneLabels: string[]` (translated via `renderer.getLaneLabelMap()`) and `priorityName` (e.g. `"UserBlocking"`)     |
-| `maxFibersPerCommit`         | `5000`  | Cap on tree size per commit to bound payload size                                                                   |
-| `minFiberActualDurationMs`   | `0`     | Skip fibers below this threshold                                                                                    |
+| Option                     | Default | What you get                                                                                                                                          |
+| -------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `recordChangeDescriptions` | `false` | `changeDescription: { isFirstMount, props[], state, context, hooks[], parent }` per fiber. Answers "why this re-rendered" in a single event.          |
+| `includeFiberSource`       | `false` | `source: { fileName, lineNumber, columnNumber }` + `ownerName`, read from `_debugSource` (R16/17/18) or `_debugStack` (R19+). Sync, no symbolication. |
+| `includeFiberIdentity`     | `false` | `fiberId: number`, stable monotonic id per logical fiber (alternate-aware), so the agent can build cross-commit histograms.                           |
+| `includeLaneLabels`        | `true`  | `laneLabels: string[]` (translated via `renderer.getLaneLabelMap()`) and `priorityName` (e.g. `"UserBlocking"`)                                       |
+| `maxFibersPerCommit`       | `5000`  | Cap on tree size per commit to bound payload size                                                                                                     |
+| `minFiberActualDurationMs` | `0`     | Skip fibers below this threshold                                                                                                                      |
 
 ### Build profile
 
@@ -162,7 +162,7 @@ export interface Options {
   enabled?: boolean;
 
   /**
-   * Force React Scan to run in production (not recommended)
+   * Force React Scan Pro to run in production (not recommended)
    *
    * @default false
    */
@@ -199,7 +199,7 @@ export interface Options {
    * corresponding dom subtree
    *
    *  @default false
-   *  @warning tracking unnecessary renders can add meaningful overhead to react-scan
+   *  @warning tracking unnecessary renders can add meaningful overhead to react-scan-pro
    */
   trackUnnecessaryRenders?: boolean;
 
@@ -218,15 +218,65 @@ export interface Options {
 - `getReport()`: Get a report of all the renders
 - `setOptions(options: Options): void`: Set options at runtime
 - `getOptions()`: Get the current options
+- `onReport(listener)`: Subscribe to completed scan-session reports
+- `getLastReport()`: Read the most recently completed report
 - `onRender(Component, onRender: (fiber: Fiber, render: Render) => void)`: Hook into a specific component's renders
 
-## Why React Scan?
+### Session report
+
+```ts
+scan({
+  enabled: false,
+  scope: { kind: "component-name", name: "App" },
+  report: {
+    mode: "summary",
+    onComplete: (report) => console.log(report.components),
+  },
+});
+
+setOptions({ enabled: true });
+setOptions({ enabled: false });
+```
+
+The toolbar includes a **Session reports** panel for the latest completed capture. It displays
+aggregated component metrics or virtualized Raw records and provides **Copy** and **Export JSON**
+actions without retaining a second in-memory copy of the report.
+
+The script build exposes the same data through `window.reactScanPro.onReport()` and
+stores the latest result for `window.reactScanPro.getLastReport()`:
+
+```html
+<script>
+  window.__REACT_SCAN_PRO_OPTIONS__ = {
+    enabled: false,
+    report: { mode: "summary", limit: 100 },
+  };
+</script>
+<script src="https://unpkg.com/react-scan-pro/dist/auto.global.js"></script>
+<script>
+  const unsubscribe = window.reactScanPro.onReport((report) => {
+    console.log(report);
+    // For iframes, also configure allowInIframe: true.
+    window.parent.postMessage({ type: "react-scan-pro:report", report }, "*");
+  });
+
+  window.reactScanPro.setOptions({ enabled: true });
+  // Exercise the app, then synchronously complete the session.
+  window.reactScanPro.setOptions({ enabled: false });
+</script>
+```
+
+Listeners receive JSON-safe reports and may upload them with `fetch()`. `onReport()` returns an
+unsubscribe function, and `window.reactScan` remains a 0.1.x compatibility alias with the same
+methods.
+
+## Why React Scan Pro?
 
 React can be tricky to optimize.
 
 The issue is that component props are compared by reference, not value. This is intentional – this way rendering can be cheap to run.
 
-However, this makes it easy to accidentally cause unnecessary renders, making the app slow. Even in production apps, with hundreds of engineers, can't fully optimize their apps (see [GitHub](https://github.com/aidenybai/react-scan/blob/main/.github/assets/github.mp4), [Twitter](https://github.com/aidenybai/react-scan/blob/main/.github/assets/twitter.mp4), and [Instagram](https://github.com/aidenybai/react-scan/blob/main/.github/assets/instagram.mp4)).
+However, this makes it easy to accidentally cause unnecessary renders, making the app slow. Even in production apps, with hundreds of engineers, can't fully optimize their apps (see [GitHub](https://github.com/shuguang-lv/react-scan-pro/blob/main/.github/assets/github.mp4), [Twitter](https://github.com/shuguang-lv/react-scan-pro/blob/main/.github/assets/twitter.mp4), and [Instagram](https://github.com/shuguang-lv/react-scan-pro/blob/main/.github/assets/instagram.mp4)).
 
 This often comes down to props that update in reference, like callbacks or object values. For example, the `onClick` function and `style` object are re-created on every render, causing `ExpensiveComponent` to slow down the app:
 
@@ -234,13 +284,13 @@ This often comes down to props that update in reference, like callbacks or objec
 <ExpensiveComponent onClick={() => alert("hi")} style={{ color: "purple" }} />
 ```
 
-React Scan helps you identify these issues by automatically detecting and highlighting renders that cause performance issues. Now, instead of guessing, you can see exactly which components you need to fix.
+React Scan Pro helps you identify these issues by automatically detecting and highlighting renders that cause performance issues. Now, instead of guessing, you can see exactly which components you need to fix.
 
 ### FAQ
 
 **Q: Why this instead of React Devtools?**
 
-React Devtools aims to be a general purpose tool for React. However, I deal with React performance issues every day, and React Devtools doesn't fix my problems well. There's a lot of noise (no obvious distinction between unnecessary and necessary renders), and there's no programmatic API. If it sounds like you have the same problems, then React Scan may be a better choice.
+React Devtools aims to be a general purpose tool for React. However, I deal with React performance issues every day, and React Devtools doesn't fix my problems well. There's a lot of noise (no obvious distinction between unnecessary and necessary renders), and there's no programmatic API. If it sounds like you have the same problems, then React Scan Pro may be a better choice.
 
 Also, some personal complaints about React Devtools' highlight feature:
 
@@ -252,25 +302,25 @@ Also, some personal complaints about React Devtools' highlight feature:
 - No programmatic API
 - It's stuck in a chrome extension, I want to run it anywhere on the web
 - It looks subjectively ugly (lines look fuzzy, feels sluggish)
-- I'm more ambitious with react-scan
+- I'm more ambitious with react-scan-pro
 
 ## Resources & Contributing Back
 
-Want to try it out? Check the [our demo](https://react-scan.million.dev).
+Want to try it out? Check the [our demo](https://github.com/shuguang-lv/react-scan-pro).
 
-Looking to contribute back? Check the [Contributing Guide](https://github.com/aidenybai/react-scan/blob/main/CONTRIBUTING.md) out.
+Looking to contribute back? Check the [Contributing Guide](https://github.com/shuguang-lv/react-scan-pro/blob/main/CONTRIBUTING.md) out.
 
-Want to talk to the community? Hop in our [Discord](https://discord.gg/X9yFbcV2rF) and share your ideas and what you've build with React Scan.
+Want to talk to the community? Hop in our [Discord](https://discord.gg/X9yFbcV2rF) and share your ideas and what you've build with React Scan Pro.
 
-Find a bug? Head over to our [issue tracker](https://github.com/aidenybai/react-scan/issues) and we'll do our best to help. We love pull requests, too!
+Find a bug? Head over to our [issue tracker](https://github.com/shuguang-lv/react-scan-pro/issues) and we'll do our best to help. We love pull requests, too!
 
-We expect all contributors to abide by the terms of our [Code of Conduct](https://github.com/aidenybai/react-scan/blob/main/.github/CODE_OF_CONDUCT.md).
+We expect all contributors to abide by the terms of our [Code of Conduct](https://github.com/shuguang-lv/react-scan-pro/blob/main/.github/CODE_OF_CONDUCT.md).
 
-[**→ Start contributing on GitHub**](https://github.com/aidenybai/react-scan/blob/main/CONTRIBUTING.md)
+[**→ Start contributing on GitHub**](https://github.com/shuguang-lv/react-scan-pro/blob/main/CONTRIBUTING.md)
 
 ## Acknowledgments
 
-React Scan takes inspiration from the following projects:
+React Scan Pro takes inspiration from the following projects:
 
 - [React Devtools](https://react.dev/learn/react-developer-tools) for the initial idea of [highlighting renders](https://medium.com/dev-proto/highlight-react-components-updates-1b2832f2ce48). We chose to diverge from this to provide a [better developer experience](https://x.com/aidenybai/status/1857122670929969551)
 - [Million Lint](https://million.dev) for scanning and linting approaches
@@ -278,4 +328,4 @@ React Scan takes inspiration from the following projects:
 
 ## License
 
-React Scan is [MIT-licensed](LICENSE) open-source software by Aiden Bai, [Million Software, Inc.](https://million.dev), and [contributors](https://github.com/aidenybai/react-scan/graphs/contributors).
+React Scan Pro is [MIT-licensed](LICENSE) open-source software by Aiden Bai, [Million Software, Inc.](https://million.dev), and [contributors](https://github.com/shuguang-lv/react-scan-pro/graphs/contributors).

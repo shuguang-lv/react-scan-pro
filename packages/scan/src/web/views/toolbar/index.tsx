@@ -1,24 +1,15 @@
-import { useSignalEffect } from '@preact/signals';
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useState,
-} from 'preact/hooks';
-import {
-  type LocalStorageOptions,
-  ReactScanInternals,
-  Store,
-} from '~core/index';
-import { Icon } from '~web/components/icon';
-import { Toggle } from '~web/components/toggle';
-import { signalWidgetViews } from '~web/state';
-import { cn, readLocalStorage, saveLocalStorage } from '~web/utils/helpers';
-import { constant } from '~web/utils/preact/constant';
-import { FPSMeter } from '~web/widget/fps-meter';
-import { getEventSeverity } from '../notifications/data';
-import { Notification } from '../notifications/icons';
-import { useAppNotifications } from '../notifications/notifications';
+import { useSignalEffect } from "@preact/signals";
+import { useCallback, useEffect, useLayoutEffect, useState } from "preact/hooks";
+import { type LocalStorageOptions, ReactScanInternals, Store } from "~core/index";
+import { Icon } from "~web/components/icon";
+import { Toggle } from "~web/components/toggle";
+import { signalWidgetViews } from "~web/state";
+import { cn, readLocalStorage, saveLocalStorage } from "~web/utils/helpers";
+import { constant } from "~web/utils/preact/constant";
+import { FPSMeter } from "~web/widget/fps-meter";
+import { getEventSeverity } from "../notifications/data";
+import { Notification } from "../notifications/icons";
+import { useAppNotifications } from "../notifications/notifications";
 
 export const Toolbar = constant(() => {
   const events = useAppNotifications();
@@ -36,8 +27,8 @@ export const Toolbar = constant(() => {
   }, [events]);
 
   const inspectState = Store.inspectState;
-  const isInspectActive = inspectState.value.kind === 'inspecting';
-  const isInspectFocused = inspectState.value.kind === 'focused';
+  const isInspectActive = inspectState.value.kind === "inspecting";
+  const isInspectFocused = inspectState.value.kind === "focused";
 
   const [seenEvents, setSeenEvents] = useState<Array<string>>([]);
 
@@ -45,38 +36,38 @@ export const Toolbar = constant(() => {
     const currentState = Store.inspectState.value;
 
     switch (currentState.kind) {
-      case 'inspecting': {
+      case "inspecting": {
         signalWidgetViews.value = {
-          view: 'none',
+          view: "none",
         };
         Store.inspectState.value = {
-          kind: 'inspect-off',
+          kind: "inspect-off",
         };
         return;
       }
 
-      case 'focused': {
+      case "focused": {
         signalWidgetViews.value = {
-          view: 'inspector',
+          view: "inspector",
         };
         Store.inspectState.value = {
-          kind: 'inspecting',
+          kind: "inspecting",
           hoveredDomElement: null,
         };
         return;
       }
       // todo: auto select the root fibers first stateNode, and tell the user to select the element
-      case 'inspect-off': {
+      case "inspect-off": {
         signalWidgetViews.value = {
-          view: 'none',
+          view: "none",
         };
         Store.inspectState.value = {
-          kind: 'inspecting',
+          kind: "inspecting",
           hoveredDomElement: null,
         };
         return;
       }
-      case 'uninitialized': {
+      case "uninitialized": {
         return;
       }
     }
@@ -93,8 +84,8 @@ export const Toolbar = constant(() => {
     const isPaused = !ReactScanInternals.instrumentation.isPaused.value;
     ReactScanInternals.instrumentation.isPaused.value = isPaused;
     const existingLocalStorageOptions =
-      readLocalStorage<LocalStorageOptions>('react-scan-options');
-    saveLocalStorage('react-scan-options', {
+      readLocalStorage<LocalStorageOptions>("react-scan-pro-options");
+    saveLocalStorage("react-scan-pro-options", {
       ...existingLocalStorageOptions,
       enabled: !isPaused,
     });
@@ -102,30 +93,30 @@ export const Toolbar = constant(() => {
 
   useSignalEffect(() => {
     const state = Store.inspectState.value;
-    if (state.kind === 'uninitialized') {
+    if (state.kind === "uninitialized") {
       Store.inspectState.value = {
-        kind: 'inspect-off',
+        kind: "inspect-off",
       };
     }
   });
 
   let inspectIcon = null;
-  let inspectColor = '#999';
+  let inspectColor = "#999";
 
   if (isInspectActive) {
     inspectIcon = <Icon name="icon-inspect" />;
-    inspectColor = '#8e61e3';
+    inspectColor = "#8e61e3";
   } else if (isInspectFocused) {
     inspectIcon = <Icon name="icon-focus" />;
-    inspectColor = '#8e61e3';
+    inspectColor = "#8e61e3";
   } else {
     inspectIcon = <Icon name="icon-inspect" />;
-    inspectColor = '#999';
+    inspectColor = "#999";
   }
 
   // oxlint-disable-next-line react-hooks/exhaustive-deps
   useLayoutEffect(() => {
-    if (signalWidgetViews.value.view !== 'notifications') {
+    if (signalWidgetViews.value.view !== "notifications") {
       return;
     }
     const ids = new Set(events.map((event) => event.id));
@@ -137,7 +128,7 @@ export const Toolbar = constant(() => {
       <div className="h-full flex items-center min-w-fit">
         <button
           type="button"
-          id="react-scan-inspect-element"
+          id="react-scan-pro-inspect-element"
           title="Inspect element"
           onClick={onToggleInspect}
           className="button flex items-center justify-center h-full w-full pl-3 pr-2.5"
@@ -150,38 +141,38 @@ export const Toolbar = constant(() => {
       <div className="h-full flex items-center justify-center">
         <button
           type="button"
-          id="react-scan-notifications"
+          id="react-scan-pro-notifications"
           title="Notifications"
           onClick={() => {
-            if (Store.inspectState.value.kind !== 'inspect-off') {
+            if (Store.inspectState.value.kind !== "inspect-off") {
               Store.inspectState.value = {
-                kind: 'inspect-off',
+                kind: "inspect-off",
               };
             }
             switch (signalWidgetViews.value.view) {
-              case 'inspector': {
+              case "inspector": {
                 Store.inspectState.value = {
-                  kind: 'inspect-off',
+                  kind: "inspect-off",
                 };
 
                 const ids = new Set(events.map((event) => event.id));
                 setSeenEvents([...ids.values()]);
                 signalWidgetViews.value = {
-                  view: 'notifications',
+                  view: "notifications",
                 };
                 return;
               }
-              case 'notifications': {
+              case "notifications": {
                 signalWidgetViews.value = {
-                  view: 'none',
+                  view: "none",
                 };
                 return;
               }
-              case 'none': {
+              case "none": {
                 const ids = new Set(events.map((event) => event.id));
                 setSeenEvents([...ids.values()]);
                 signalWidgetViews.value = {
-                  view: 'notifications',
+                  view: "notifications",
                 };
                 return;
               }
@@ -193,14 +184,34 @@ export const Toolbar = constant(() => {
           <Notification
             events={laggedEvents
               .filter((event) => !seenEvents.includes(event.id))
-              .map((event) => getEventSeverity(event) === 'high')}
+              .map((event) => getEventSeverity(event) === "high")}
             size={16}
             className={cn([
-              'text-[#999]',
-              signalWidgetViews.value.view === 'notifications' &&
-                'text-[#8E61E3]',
+              "text-[#999]",
+              signalWidgetViews.value.view === "notifications" && "text-[#8E61E3]",
             ])}
           />
+        </button>
+      </div>
+
+      <div className="h-full flex items-center justify-center">
+        <button
+          type="button"
+          id="react-scan-pro-reports"
+          title="Session reports"
+          onClick={() => {
+            if (Store.inspectState.value.kind !== "inspect-off") {
+              Store.inspectState.value = { kind: "inspect-off" };
+            }
+            signalWidgetViews.value =
+              signalWidgetViews.value.view === "reports" ? { view: "none" } : { view: "reports" };
+          }}
+          className="button flex items-center justify-center h-full pl-2.5 pr-2.5"
+          style={{
+            color: signalWidgetViews.value.view === "reports" ? "#8e61e3" : "#999",
+          }}
+        >
+          <Icon name="icon-gallery-horizontal-end" />
         </button>
       </div>
 

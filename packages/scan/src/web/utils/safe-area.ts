@@ -1,7 +1,7 @@
-import { ReactScanInternals } from '~core/index';
-import { SAFE_AREA } from '~web/constants';
-import { isFiniteNonNegative } from '~web/utils/is-finite-non-negative';
-import { isPlainObject } from '~web/utils/is-plain-object';
+import { ReactScanInternals } from "~core/index";
+import { SAFE_AREA } from "~web/constants";
+import { isFiniteNonNegative } from "~web/utils/is-finite-non-negative";
+import { isPlainObject } from "~web/utils/is-plain-object";
 
 export interface SafeAreaInsets {
   top: number;

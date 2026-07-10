@@ -33,6 +33,7 @@ export interface BlueprintOutline {
 }
 
 declare global {
+  var __REACT_SCAN_PRO_STOP__: boolean;
   var __REACT_SCAN_STOP__: boolean;
   var ReactScan: {
     hasStopped: () => boolean;

@@ -1,28 +1,28 @@
-import react from '@vitejs/plugin-react';
-import { type UserConfig, defineConfig, loadEnv } from 'vite';
-import webExtension, { readJsonFile } from 'vite-plugin-web-extension';
-import tsconfigPaths from 'vite-tsconfig-paths';
+import react from "@vitejs/plugin-react";
+import { type UserConfig, defineConfig, loadEnv } from "vite";
+import webExtension, { readJsonFile } from "vite-plugin-web-extension";
+import tsconfigPaths from "vite-tsconfig-paths";
 
 // Browser types
 const BROWSER_TYPES = {
-  CHROME: 'chrome',
-  FIREFOX: 'firefox',
-  BRAVE: 'brave',
+  CHROME: "chrome",
+  FIREFOX: "firefox",
+  BRAVE: "brave",
 } as const;
 
 type BrowserType = (typeof BROWSER_TYPES)[keyof typeof BROWSER_TYPES];
 
 export default defineConfig(({ mode }): UserConfig => {
-  const env = loadEnv(mode, process.cwd(), '');
+  const env = loadEnv(mode, process.cwd(), "");
   const browser = (env.BROWSER || BROWSER_TYPES.CHROME) as BrowserType;
 
   const isBrave = browser === BROWSER_TYPES.BRAVE;
 
   // Validate Brave binary
-  if (env.NODE_ENV === 'development' && isBrave && !env.BRAVE_BINARY) {
+  if (env.NODE_ENV === "development" && isBrave && !env.BRAVE_BINARY) {
     // oxlint-disable-next-line no-console
     console.error(`
-    ⚛️  React Scan
+    ⚛️  React Scan Pro
     ==============
     🚫 Error: BRAVE_BINARY environment variable is missing
 
@@ -59,12 +59,10 @@ export default defineConfig(({ mode }): UserConfig => {
   // Generate manifest with package info
   const generateManifest = () => {
     const manifestPath =
-      browser === BROWSER_TYPES.FIREFOX
-        ? 'src/manifest.firefox.json'
-        : 'src/manifest.chrome.json';
+      browser === BROWSER_TYPES.FIREFOX ? "src/manifest.firefox.json" : "src/manifest.chrome.json";
 
     const manifest = readJsonFile(manifestPath);
-    const pkg = readJsonFile('package.json');
+    const pkg = readJsonFile("package.json");
 
     return {
       name: pkg.name,
@@ -77,7 +75,7 @@ export default defineConfig(({ mode }): UserConfig => {
   // Vite configuration
   return {
     build: {
-      minify: 'esbuild' as const,
+      minify: "esbuild" as const,
     },
     esbuild: {
       keepNames: true,
@@ -90,19 +88,15 @@ export default defineConfig(({ mode }): UserConfig => {
         manifest: generateManifest,
         // Use Chrome config for Brave
         webExtConfig: {
-          target: isBrave
-            ? 'chromium'
-            : browser === 'firefox'
-              ? 'firefox-desktop'
-              : 'chromium',
+          target: isBrave ? "chromium" : browser === "firefox" ? "firefox-desktop" : "chromium",
           chromiumBinary: getBrowserBinary(),
           firefoxBinary: env.FIREFOX_BINARY,
-          startUrl: ['https://github.com/aidenybai/react-scan'],
+          startUrl: ["https://github.com/shuguang-lv/react-scan-pro"],
         },
       }),
     ],
     optimizeDeps: {
-      exclude: ['react-scan'],
+      exclude: ["react-scan-pro"],
     },
   };
 });

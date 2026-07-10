@@ -260,7 +260,7 @@ const setupPerformanceListener = (onEntry: (interaction: PerformanceInteraction)
     if (entry.target) {
       let current: Element | null = entry.target;
       while (current) {
-        if (current.id === "react-scan-toolbar-root" || current.id === "react-scan-root") {
+        if (current.id === "react-scan-pro-toolbar-root" || current.id === "react-scan-pro-root") {
           return;
         }
         current = current.parentElement;
@@ -558,7 +558,7 @@ export const setupDetailedPointerTimingListener = (
 
   const onInteractionStart = (e: Event) => {
     const path = e.composedPath();
-    if (path.some((el) => el instanceof Element && el.id === "react-scan-toolbar-root")) {
+    if (path.some((el) => el instanceof Element && el.id === "react-scan-pro-toolbar-root")) {
       return;
     }
     if (Date.now() - lastInteractionRef.current.stageStart > 2000) {

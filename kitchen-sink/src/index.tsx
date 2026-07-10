@@ -1,23 +1,23 @@
-import 'react-scan';
+import "react-scan-pro";
 
-import { FC, lazy } from 'react';
-import { createRoot } from 'react-dom/client';
-import Home from './main';
+import { FC, lazy } from "react";
+import { createRoot } from "react-dom/client";
+import Home from "./main";
 
-import './index.css';
+import "./index.css";
 
 const examples = import.meta.glob<false, string, { default: FC<unknown> }>(
-  './examples/**/index.tsx',
+  "./examples/**/index.tsx",
   {
     eager: false,
   },
 );
 
-const root = document.getElementById('root');
+const root = document.getElementById("root");
 
 if (root) {
   const embedded = new URLSearchParams(window.location.search);
-  const page = embedded.get('example');
+  const page = embedded.get("example");
   const target = `./examples/${page}/index.tsx`;
   if (page && target in examples) {
     const App = lazy(examples[target]);

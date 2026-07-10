@@ -1,14 +1,14 @@
-import type { Options } from '~core/index';
-import { isFiniteNonNegative } from '~web/utils/is-finite-non-negative';
-import { isPlainObject } from '~web/utils/is-plain-object';
+import type { Options } from "~core/index";
+import { isFiniteNonNegative } from "~web/utils/is-finite-non-negative";
+import { isPlainObject } from "~web/utils/is-plain-object";
 
-type SafeAreaOption = NonNullable<Options['safeArea']>;
+type SafeAreaOption = NonNullable<Options["safeArea"]>;
 
 export type ParsedSafeAreaOption =
   | { ok: true; value: SafeAreaOption }
   | { ok: false; error: string };
 
-const SAFE_AREA_EDGES = ['top', 'right', 'bottom', 'left'] as const;
+const SAFE_AREA_EDGES = ["top", "right", "bottom", "left"] as const;
 
 export const parseSafeAreaOption = (value: unknown): ParsedSafeAreaOption => {
   if (isFiniteNonNegative(value)) {

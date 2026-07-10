@@ -1,37 +1,19 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'preact/hooks';
-import { Store } from '~core/index';
-import { getRenderData } from '~core/instrumentation';
-import { Icon } from '~web/components/icon';
-import {
-  LOCALSTORAGE_KEY,
-  MIN_CONTAINER_WIDTH,
-} from '~web/constants';
-import { useVirtualList } from '~web/hooks/use-virtual-list';
-import { signalWidget } from '~web/state';
-import {
-  cn,
-  getExtendedDisplayName,
-  saveLocalStorage,
-} from '~web/utils/helpers';
-import { getFiberPath } from '~web/utils/pin';
-import { inspectorUpdateSignal } from '../states';
+import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { Store } from "~core/index";
+import { getRenderData } from "~core/instrumentation";
+import { Icon } from "~web/components/icon";
+import { LOCALSTORAGE_KEY, MIN_CONTAINER_WIDTH } from "~web/constants";
+import { useVirtualList } from "~web/hooks/use-virtual-list";
+import { signalWidget } from "~web/state";
+import { cn, getExtendedDisplayName, saveLocalStorage } from "~web/utils/helpers";
+import { getFiberPath } from "~web/utils/pin";
+import { inspectorUpdateSignal } from "../states";
 import {
   type InspectableElement,
   getCompositeComponentFromElement,
   getInspectableElements,
-} from '../utils';
-import {
-  type FlattenedNode,
-  type TreeNode,
-  searchState,
-  signalSkipTreeUpdate,
-} from './state';
+} from "../utils";
+import { type FlattenedNode, type TreeNode, searchState, signalSkipTreeUpdate } from "./state";
 
 const flattenTree = (
   nodes: TreeNode[],
@@ -39,13 +21,9 @@ const flattenTree = (
   parentPath: string | null = null,
 ): FlattenedNode[] => {
   return nodes.reduce<FlattenedNode[]>((acc, node, index) => {
-    const nodePath = node.element
-      ? getFiberPath(node.fiber)
-      : `${parentPath}-${index}`;
+    const nodePath = node.element ? getFiberPath(node.fiber) : `${parentPath}-${index}`;
 
-    const renderData = node.fiber?.type
-      ? getRenderData(node.fiber)
-      : undefined;
+    const renderData = node.fiber?.type ? getRenderData(node.fiber) : undefined;
 
     const flatNode: FlattenedNode = {
       ...node,
@@ -80,10 +58,7 @@ const calculateIndentSize = (containerWidth: number, maxDepth: number) => {
 
   if (availableSpace < MIN_TOTAL_INDENT) return MIN_INDENT;
 
-  const targetTotalIndent = Math.min(
-    availableSpace * 0.3,
-    maxDepth * MAX_INDENT,
-  );
+  const targetTotalIndent = Math.min(availableSpace * 0.3, maxDepth * MAX_INDENT);
   const baseIndent = targetTotalIndent / maxDepth;
 
   return Math.max(MIN_INDENT, Math.min(MAX_INDENT, baseIndent));
@@ -99,14 +74,14 @@ interface TreeNodeItemProps {
   searchValue: typeof searchState.value;
 }
 
-const VALID_TYPES = ['memo', 'forwardRef', 'lazy', 'suspense'];
+const VALID_TYPES = ["memo", "forwardRef", "lazy", "suspense"];
 
 const parseTypeSearch = (query: string) => {
   const typeMatch = query.match(/\[(.*?)\]/);
   if (!typeMatch) return null;
 
   const typeSearches: string[] = [];
-  const parts = typeMatch[1].split(',');
+  const parts = typeMatch[1].split(",");
   for (const part of parts) {
     const trimmed = part.trim().toLowerCase();
     if (trimmed) typeSearches.push(trimmed);
@@ -131,10 +106,7 @@ const isValidTypeSearch = (typeSearches: string[]) => {
   return true;
 };
 
-const matchesTypeSearch = (
-  typeSearches: string[],
-  wrapperTypes: Array<{ type: string }>,
-) => {
+const matchesTypeSearch = (typeSearches: string[], wrapperTypes: Array<{ type: string }>) => {
   if (typeSearches.length === 0) return true;
   if (!wrapperTypes.length) return false;
 
@@ -151,15 +123,12 @@ const matchesTypeSearch = (
   return true;
 };
 
-const useNodeHighlighting = (
-  node: FlattenedNode,
-  searchValue: typeof searchState.value,
-) => {
+const useNodeHighlighting = (node: FlattenedNode, searchValue: typeof searchState.value) => {
   return useMemo(() => {
     const { query, matches } = searchValue;
     const isMatch = matches.some((match) => match.nodeId === node.nodeId);
     const typeSearches = parseTypeSearch(query) || [];
-    const searchQuery = query ? query.replace(/\[.*?\]/, '').trim() : '';
+    const searchQuery = query ? query.replace(/\[.*?\]/, "").trim() : "";
 
     if (!query || !isMatch) {
       return {
@@ -181,9 +150,9 @@ const useNodeHighlighting = (
     let textContent = <span className="truncate">{node.label}</span>;
     if (searchQuery) {
       try {
-        if (searchQuery.startsWith('/') && searchQuery.endsWith('/')) {
+        if (searchQuery.startsWith("/") && searchQuery.endsWith("/")) {
           const pattern = searchQuery.slice(1, -1);
-          const regex = new RegExp(`(${pattern})`, 'i');
+          const regex = new RegExp(`(${pattern})`, "i");
           const parts = node.label.split(regex);
 
           textContent = (
@@ -192,11 +161,11 @@ const useNodeHighlighting = (
                 regex.test(part) ? (
                   <span
                     key={`${node.nodeId}-${part}`}
-                    className={cn('regex', {
+                    className={cn("regex", {
                       start: regex.test(part) && index === 0,
                       middle: regex.test(part) && index % 2 === 1,
                       end: regex.test(part) && index === parts.length - 1,
-                      '!ml-0': index === 1,
+                      "!ml-0": index === 1,
                     })}
                   >
                     {part}
@@ -237,14 +206,14 @@ const useNodeHighlighting = (
 const formatTime = (time: number) => {
   if (time > 0) {
     if (time < 0.1 - Number.EPSILON) {
-      return '< 0.1';
+      return "< 0.1";
     }
     if (time < 1000) {
       return Number(time.toFixed(1)).toString();
     }
     return `${(time / 1000).toFixed(1)}k`;
   }
-  return '0';
+  return "0";
 };
 
 const TreeNodeItem = ({
@@ -259,10 +228,7 @@ const TreeNodeItem = ({
   const refRenderCount = useRef<HTMLSpanElement>(null);
   const refPrevRenderCount = useRef(node.renderData?.renderCount ?? 0);
 
-  const { highlightedText, typeHighlight } = useNodeHighlighting(
-    node,
-    searchValue,
-  );
+  const { highlightedText, typeHighlight } = useNodeHighlighting(node, searchValue);
 
   useEffect(() => {
     const currentRenderCount = node.renderData?.renderCount;
@@ -276,9 +242,9 @@ const TreeNodeItem = ({
       return;
     }
 
-    element.classList.remove('count-flash');
+    element.classList.remove("count-flash");
     void element.offsetWidth;
-    element.classList.add('count-flash');
+    element.classList.add("count-flash");
 
     refPrevRenderCount.current = currentRenderCount;
   }, [node.renderData?.renderCount]);
@@ -292,12 +258,7 @@ const TreeNodeItem = ({
     }
 
     return (
-      <span
-        className={cn(
-          'flex items-center gap-x-0.5 ml-1.5',
-          'text-[10px] text-neutral-400',
-        )}
-      >
+      <span className={cn("flex items-center gap-x-0.5 ml-1.5", "text-[10px] text-neutral-400")}>
         <span
           ref={refRenderCount}
           title={`Self time: ${formatTime(selfTime)}ms\nTotal time: ${formatTime(totalTime)}ms`}
@@ -317,9 +278,9 @@ const TreeNodeItem = ({
     return (
       <span
         className={cn(
-          'flex items-center gap-x-1',
-          'text-[10px] text-neutral-400 tracking-wide',
-          'overflow-hidden',
+          "flex items-center gap-x-1",
+          "text-[10px] text-neutral-400 tracking-wide",
+          "overflow-hidden",
         )}
       >
         {firstWrapperType && (
@@ -328,18 +289,16 @@ const TreeNodeItem = ({
               key={firstWrapperType.type}
               title={firstWrapperType?.title}
               className={cn(
-                'rounded py-[1px] px-1',
-                'bg-neutral-700 text-neutral-300',
-                'truncate',
-                firstWrapperType.type === 'memo' && 'bg-[#8e61e3] text-white',
-                typeHighlight && 'bg-yellow-300 text-black',
+                "rounded py-[1px] px-1",
+                "bg-neutral-700 text-neutral-300",
+                "truncate",
+                firstWrapperType.type === "memo" && "bg-[#8e61e3] text-white",
+                typeHighlight && "bg-yellow-300 text-black",
               )}
             >
               {firstWrapperType.type}
             </span>
-            {firstWrapperType.compiler && (
-              <span className="text-yellow-300 ml-1">✨</span>
-            )}
+            {firstWrapperType.compiler && <span className="text-yellow-300 ml-1">✨</span>}
           </>
         )}
         {wrapperTypes.length > 1 && `×${wrapperTypes.length}`}
@@ -354,12 +313,12 @@ const TreeNodeItem = ({
       title={node.title}
       data-index={nodeIndex}
       className={cn(
-        'flex items-center gap-x-1',
-        'pl-1 pr-2',
-        'w-full h-7',
-        'text-left',
-        'rounded',
-        'cursor-pointer select-none',
+        "flex items-center gap-x-1",
+        "pl-1 pr-2",
+        "w-full h-7",
+        "text-left",
+        "rounded",
+        "cursor-pointer select-none",
       )}
       onClick={handleTreeNodeClick}
     >
@@ -367,13 +326,13 @@ const TreeNodeItem = ({
         type="button"
         data-index={nodeIndex}
         onClick={handleTreeNodeToggle}
-        className={cn('w-6 h-6 flex items-center justify-center', 'text-left')}
+        className={cn("w-6 h-6 flex items-center justify-center", "text-left")}
       >
         {hasChildren && (
           <Icon
             name="icon-chevron-right"
             size={12}
-            className={cn('transition-transform', !isCollapsed && 'rotate-90')}
+            className={cn("transition-transform", !isCollapsed && "rotate-90")}
           />
         )}
       </button>
@@ -396,9 +355,7 @@ export const ComponentsTree = () => {
 
   const [flattenedNodes, setFlattenedNodes] = useState<FlattenedNode[]>([]);
   const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set());
-  const [selectedIndex, setSelectedIndex] = useState<number | undefined>(
-    undefined,
-  );
+  const [selectedIndex, setSelectedIndex] = useState<number | undefined>(undefined);
   const [searchValue, setSearchValue] = useState(searchState.value);
 
   const visibleNodes = useMemo(() => {
@@ -444,19 +401,16 @@ export const ComponentsTree = () => {
       refSearchInput.current?.blur();
       signalSkipTreeUpdate.value = true;
 
-      const { parentCompositeFiber } =
-        getCompositeComponentFromElement(element);
+      const { parentCompositeFiber } = getCompositeComponentFromElement(element);
       if (!parentCompositeFiber) return;
 
       Store.inspectState.value = {
-        kind: 'focused',
+        kind: "focused",
         focusedDomElement: element,
         fiber: parentCompositeFiber,
       };
 
-      const nodeIndex = visibleNodes.findIndex(
-        (node) => node.element === element,
-      );
+      const nodeIndex = visibleNodes.findIndex((node) => node.element === element);
       if (nodeIndex !== -1) {
         setSelectedIndex(nodeIndex);
         const itemTop = nodeIndex * ITEM_HEIGHT;
@@ -465,13 +419,10 @@ export const ComponentsTree = () => {
           const containerHeight = container.clientHeight;
           const scrollTop = container.scrollTop;
 
-          if (
-            itemTop < scrollTop ||
-            itemTop + ITEM_HEIGHT > scrollTop + containerHeight
-          ) {
+          if (itemTop < scrollTop || itemTop + ITEM_HEIGHT > scrollTop + containerHeight) {
             container.scrollTo({
               top: Math.max(0, itemTop - containerHeight / 2),
-              behavior: 'instant',
+              behavior: "instant",
             });
           }
         }
@@ -518,7 +469,7 @@ export const ComponentsTree = () => {
 
   const handleOnChangeSearch = useCallback(
     (query: string) => {
-      refSearchInputContainer.current?.classList.remove('!border-red-500');
+      refSearchInputContainer.current?.classList.remove("!border-red-500");
       const matches: FlattenedNode[] = [];
 
       if (!query) {
@@ -526,28 +477,28 @@ export const ComponentsTree = () => {
         return;
       }
 
-      if (query.includes('[') && !query.includes(']')) {
-        if (query.length > query.indexOf('[') + 1) {
-          refSearchInputContainer.current?.classList.add('!border-red-500');
+      if (query.includes("[") && !query.includes("]")) {
+        if (query.length > query.indexOf("[") + 1) {
+          refSearchInputContainer.current?.classList.add("!border-red-500");
           return;
         }
       }
 
       const typeSearches = parseTypeSearch(query) || [];
-      if (query.includes('[')) {
+      if (query.includes("[")) {
         if (!isValidTypeSearch(typeSearches)) {
-          refSearchInputContainer.current?.classList.add('!border-red-500');
+          refSearchInputContainer.current?.classList.add("!border-red-500");
           return;
         }
       }
 
-      const searchQuery = query.replace(/\[.*?\]/, '').trim();
+      const searchQuery = query.replace(/\[.*?\]/, "").trim();
       const isRegex = /^\/.*\/$/.test(searchQuery);
       let matchesLabel = (_label: string) => false;
 
-      if (searchQuery.startsWith('/') && !isRegex) {
+      if (searchQuery.startsWith("/") && !isRegex) {
         if (searchQuery.length > 1) {
-          refSearchInputContainer.current?.classList.add('!border-red-500');
+          refSearchInputContainer.current?.classList.add("!border-red-500");
           return;
         }
       }
@@ -555,16 +506,15 @@ export const ComponentsTree = () => {
       if (isRegex) {
         try {
           const pattern = searchQuery.slice(1, -1);
-          const regex = new RegExp(pattern, 'i');
+          const regex = new RegExp(pattern, "i");
           matchesLabel = (label: string) => regex.test(label);
         } catch {
-          refSearchInputContainer.current?.classList.add('!border-red-500');
+          refSearchInputContainer.current?.classList.add("!border-red-500");
           return;
         }
       } else if (searchQuery) {
         const lowerQuery = searchQuery.toLowerCase();
-        matchesLabel = (label: string) =>
-          label.toLowerCase().includes(lowerQuery);
+        matchesLabel = (label: string) => label.toLowerCase().includes(lowerQuery);
       }
 
       for (const node of flattenedNodes) {
@@ -596,9 +546,7 @@ export const ComponentsTree = () => {
 
       if (matches.length > 0) {
         const firstMatch = matches[0];
-        const nodeIndex = visibleNodes.findIndex(
-          (node) => node.nodeId === firstMatch.nodeId,
-        );
+        const nodeIndex = visibleNodes.findIndex((node) => node.nodeId === firstMatch.nodeId);
         if (nodeIndex !== -1) {
           const itemTop = nodeIndex * ITEM_HEIGHT;
           const container = refContainer.current;
@@ -606,7 +554,7 @@ export const ComponentsTree = () => {
             const containerHeight = container.clientHeight;
             container.scrollTo({
               top: Math.max(0, itemTop - containerHeight / 2),
-              behavior: 'instant',
+              behavior: "instant",
             });
           }
         }
@@ -625,12 +573,12 @@ export const ComponentsTree = () => {
   );
 
   const navigateSearch = useCallback(
-    (direction: 'next' | 'prev') => {
+    (direction: "next" | "prev") => {
       const { matches, currentMatchIndex } = searchState.value;
       if (matches.length === 0) return;
 
       const newIndex =
-        direction === 'next'
+        direction === "next"
           ? (currentMatchIndex + 1) % matches.length
           : (currentMatchIndex - 1 + matches.length) % matches.length;
 
@@ -640,9 +588,7 @@ export const ComponentsTree = () => {
       };
 
       const currentMatch = matches[newIndex];
-      const nodeIndex = visibleNodes.findIndex(
-        (node) => node.nodeId === currentMatch.nodeId,
-      );
+      const nodeIndex = visibleNodes.findIndex((node) => node.nodeId === currentMatch.nodeId);
       if (nodeIndex !== -1) {
         setSelectedIndex(nodeIndex);
         const itemTop = nodeIndex * ITEM_HEIGHT;
@@ -651,7 +597,7 @@ export const ComponentsTree = () => {
           const containerHeight = container.clientHeight;
           container.scrollTo({
             top: Math.max(0, itemTop - containerHeight / 2),
-            behavior: 'instant',
+            behavior: "instant",
           });
         }
       }
@@ -666,10 +612,7 @@ export const ComponentsTree = () => {
     if (refContainer.current) {
       refContainer.current.style.width = `${width}px`;
       const indentSize = calculateIndentSize(width, refMaxTreeDepth.current);
-      refContainer.current.style.setProperty(
-        '--indentation-size',
-        `${indentSize}px`,
-      );
+      refContainer.current.style.setProperty("--indentation-size", `${indentSize}px`);
     }
   }, []);
 
@@ -677,20 +620,20 @@ export const ComponentsTree = () => {
     if (!refResizeHandle.current) return;
 
     const parentWidth = signalWidget.value.dimensions.width;
-    const maxWidth = Math.floor(parentWidth - (MIN_CONTAINER_WIDTH / 2));
+    const maxWidth = Math.floor(parentWidth - MIN_CONTAINER_WIDTH / 2);
 
     refResizeHandle.current.classList.remove(
-      'cursor-ew-resize',
-      'cursor-w-resize',
-      'cursor-e-resize',
+      "cursor-ew-resize",
+      "cursor-w-resize",
+      "cursor-e-resize",
     );
 
     if (width <= MIN_CONTAINER_WIDTH) {
-      refResizeHandle.current.classList.add('cursor-w-resize');
+      refResizeHandle.current.classList.add("cursor-w-resize");
     } else if (width >= maxWidth) {
-      refResizeHandle.current.classList.add('cursor-e-resize');
+      refResizeHandle.current.classList.add("cursor-e-resize");
     } else {
-      refResizeHandle.current.classList.add('cursor-ew-resize');
+      refResizeHandle.current.classList.add("cursor-ew-resize");
     }
   }, []);
 
@@ -700,14 +643,14 @@ export const ComponentsTree = () => {
       e.stopPropagation();
 
       if (!refContainer.current) return;
-      refContainer.current.style.setProperty('pointer-events', 'none');
+      refContainer.current.style.setProperty("pointer-events", "none");
 
       refIsResizing.current = true;
 
       const startX = e.clientX;
       const startWidth = refContainer.current.offsetWidth;
       const parentWidth = signalWidget.value.dimensions.width;
-      const maxWidth = Math.floor(parentWidth - (MIN_CONTAINER_WIDTH / 2));
+      const maxWidth = Math.floor(parentWidth - MIN_CONTAINER_WIDTH / 2);
 
       updateResizeDirection(startWidth);
 
@@ -716,18 +659,15 @@ export const ComponentsTree = () => {
         const newWidth = startWidth + delta;
         updateResizeDirection(newWidth);
 
-        const clampedWidth = Math.min(
-          maxWidth,
-          Math.max(MIN_CONTAINER_WIDTH, newWidth),
-        );
+        const clampedWidth = Math.min(maxWidth, Math.max(MIN_CONTAINER_WIDTH, newWidth));
         updateContainerWidths(clampedWidth);
       };
 
       const handlePointerUp = () => {
         if (!refContainer.current) return;
-        refContainer.current.style.removeProperty('pointer-events');
-        document.removeEventListener('pointermove', handlePointerMove);
-        document.removeEventListener('pointerup', handlePointerUp);
+        refContainer.current.style.removeProperty("pointer-events");
+        document.removeEventListener("pointermove", handlePointerMove);
+        document.removeEventListener("pointerup", handlePointerUp);
 
         signalWidget.value = {
           ...signalWidget.value,
@@ -741,8 +681,8 @@ export const ComponentsTree = () => {
         refIsResizing.current = false;
       };
 
-      document.addEventListener('pointermove', handlePointerMove);
-      document.addEventListener('pointerup', handlePointerUp);
+      document.addEventListener("pointermove", handlePointerMove);
+      document.addEventListener("pointerup", handlePointerUp);
     },
     [updateContainerWidths, updateResizeDirection],
   );
@@ -776,7 +716,7 @@ export const ComponentsTree = () => {
         const { name: componentName, wrappers } = getExtendedDisplayName(fiber);
         if (componentName) {
           if (wrappers.length > 0) {
-            title = `${wrappers.join('(')}(${componentName})${')'.repeat(wrappers.length)}`;
+            title = `${wrappers.join("(")}(${componentName})${")".repeat(wrappers.length)}`;
           } else {
             title = componentName;
           }
@@ -832,9 +772,7 @@ export const ComponentsTree = () => {
 
         if (isInitialTreeBuild) {
           isInitialTreeBuild = false;
-          const focusedIndex = flattened.findIndex(
-            (node) => node.element === element,
-          );
+          const focusedIndex = flattened.findIndex((node) => node.element === element);
           if (focusedIndex !== -1) {
             const itemTop = focusedIndex * ITEM_HEIGHT;
             const container = refContainer.current;
@@ -842,7 +780,7 @@ export const ComponentsTree = () => {
               setTimeout(() => {
                 container.scrollTo({
                   top: itemTop,
-                  behavior: 'instant',
+                  behavior: "instant",
                 });
               }, 96);
             }
@@ -852,12 +790,12 @@ export const ComponentsTree = () => {
     };
 
     const unsubscribeStore = Store.inspectState.subscribe((state) => {
-      if (state.kind === 'focused') {
+      if (state.kind === "focused") {
         if (signalSkipTreeUpdate.value) {
           return;
         }
 
-        handleOnChangeSearch('');
+        handleOnChangeSearch("");
         refSelectedElement.current = state.focusedDomElement as HTMLElement;
         updateTree();
       }
@@ -865,7 +803,7 @@ export const ComponentsTree = () => {
 
     let rafId = 0;
     const unsubscribeUpdates = inspectorUpdateSignal.subscribe(() => {
-      if (Store.inspectState.value.kind === 'focused') {
+      if (Store.inspectState.value.kind === "focused") {
         cancelAnimationFrame(rafId);
         if (refIsResizing.current) return;
 
@@ -881,7 +819,7 @@ export const ComponentsTree = () => {
       unsubscribeUpdates();
 
       searchState.value = {
-        query: '',
+        query: "",
         matches: [],
         currentMatchIndex: -1,
       };
@@ -895,7 +833,7 @@ export const ComponentsTree = () => {
       if (!selectedIndex) return;
 
       switch (e.key) {
-        case 'ArrowUp': {
+        case "ArrowUp": {
           e.preventDefault();
           e.stopPropagation();
 
@@ -907,7 +845,7 @@ export const ComponentsTree = () => {
           }
           return;
         }
-        case 'ArrowDown': {
+        case "ArrowDown": {
           e.preventDefault();
           e.stopPropagation();
 
@@ -919,7 +857,7 @@ export const ComponentsTree = () => {
           }
           return;
         }
-        case 'ArrowLeft': {
+        case "ArrowLeft": {
           e.preventDefault();
           e.stopPropagation();
 
@@ -929,7 +867,7 @@ export const ComponentsTree = () => {
           }
           return;
         }
-        case 'ArrowRight': {
+        case "ArrowRight": {
           e.preventDefault();
           e.stopPropagation();
 
@@ -942,9 +880,9 @@ export const ComponentsTree = () => {
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [selectedIndex, visibleNodes, handleElementClick, handleToggle]);
 
@@ -955,23 +893,19 @@ export const ComponentsTree = () => {
   // oxlint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const unsubscribe = signalWidget.subscribe((state) => {
-      refMainContainer.current?.style.setProperty('transition', 'width 0.1s');
+      refMainContainer.current?.style.setProperty("transition", "width 0.1s");
       updateContainerWidths(state.componentsTree.width);
 
       setTimeout(() => {
-        refMainContainer.current?.style.removeProperty('transition');
+        refMainContainer.current?.style.removeProperty("transition");
       }, 500);
     });
     return unsubscribe;
   }, []);
 
   return (
-    <div className="react-scan-components-tree flex">
-      <div
-        ref={refResizeHandle}
-        onPointerDown={handleResize}
-        className="relative resize-v-line"
-      >
+    <div className="react-scan-pro-components-tree flex">
+      <div ref={refResizeHandle} onPointerDown={handleResize} className="relative resize-v-line">
         <span>
           <Icon name="icon-ellipsis" size={18} />
         </span>
@@ -1001,15 +935,15 @@ export const ComponentsTree = () => {
    - Cmd/Ctrl + Enter → Select and focus match
 `}
             className={cn(
-              'relative',
-              'flex items-center gap-x-1 px-2',
-              'rounded',
-              'border border-transparent',
-              'focus-within:border-[#454545]',
-              'bg-[#1e1e1e] text-neutral-300',
-              'transition-colors',
-              'whitespace-nowrap',
-              'overflow-hidden',
+              "relative",
+              "flex items-center gap-x-1 px-2",
+              "rounded",
+              "border border-transparent",
+              "focus-within:border-[#454545]",
+              "bg-[#1e1e1e] text-neutral-300",
+              "transition-colors",
+              "whitespace-nowrap",
+              "overflow-hidden",
             )}
           >
             <Icon name="icon-search" size={12} className=" text-neutral-500" />
@@ -1026,25 +960,24 @@ export const ComponentsTree = () => {
                   e.stopPropagation();
                 }}
                 onKeyDown={(e) => {
-                  if (e.key === 'Escape') {
+                  if (e.key === "Escape") {
                     e.currentTarget.blur();
                   }
                   if (searchState.value.matches.length) {
-                    if (e.key === 'Enter' && e.shiftKey) {
-                      navigateSearch('prev');
-                    } else if (e.key === 'Enter') {
+                    if (e.key === "Enter" && e.shiftKey) {
+                      navigateSearch("prev");
+                    } else if (e.key === "Enter") {
                       if (e.metaKey || e.ctrlKey) {
                         e.preventDefault();
                         e.stopPropagation();
                         handleElementClick(
-                          searchState.value.matches[
-                            searchState.value.currentMatchIndex
-                          ].element as HTMLElement,
+                          searchState.value.matches[searchState.value.currentMatchIndex]
+                            .element as HTMLElement,
                         );
 
                         e.currentTarget.focus();
                       } else {
-                        navigateSearch('next');
+                        navigateSearch("next");
                       }
                     }
                   }
@@ -1058,7 +991,7 @@ export const ComponentsTree = () => {
               <>
                 <span className="flex items-center gap-x-0.5 text-xs text-neutral-500">
                   {searchState.value.currentMatchIndex + 1}
-                  {'|'}
+                  {"|"}
                   {searchState.value.matches.length}
                 </span>
                 {!!searchState.value.matches.length && (
@@ -1067,29 +1000,21 @@ export const ComponentsTree = () => {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigateSearch('prev');
+                        navigateSearch("prev");
                       }}
                       className="button rounded w-4 h-4 flex items-center justify-center text-neutral-400 hover:text-neutral-300"
                     >
-                      <Icon
-                        name="icon-chevron-right"
-                        className="-rotate-90"
-                        size={12}
-                      />
+                      <Icon name="icon-chevron-right" className="-rotate-90" size={12} />
                     </button>
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        navigateSearch('next');
+                        navigateSearch("next");
                       }}
                       className="button rounded w-4 h-4 flex items-center justify-center text-neutral-400 hover:text-neutral-300"
                     >
-                      <Icon
-                        name="icon-chevron-right"
-                        className="rotate-90"
-                        size={12}
-                      />
+                      <Icon name="icon-chevron-right" className="rotate-90" size={12} />
                     </button>
                   </>
                 )}
@@ -1097,7 +1022,7 @@ export const ComponentsTree = () => {
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleOnChangeSearch('');
+                    handleOnChangeSearch("");
                   }}
                   className="button rounded w-4 h-4 flex items-center justify-center text-neutral-400 hover:text-neutral-300"
                 >
@@ -1106,9 +1031,7 @@ export const ComponentsTree = () => {
               </>
             ) : (
               !!flattenedNodes.length && (
-                <span className="text-xs text-neutral-500">
-                  {flattenedNodes.length}
-                </span>
+                <span className="text-xs text-neutral-500">{flattenedNodes.length}</span>
               )
             )}
           </div>
@@ -1130,7 +1053,7 @@ export const ComponentsTree = () => {
                 if (!node) return null;
 
                 const isSelected =
-                  Store.inspectState.value.kind === 'focused' &&
+                  Store.inspectState.value.kind === "focused" &&
                   node.element === Store.inspectState.value.focusedDomElement;
                 const isKeyboardSelected = virtualItem.index === selectedIndex;
 
@@ -1138,11 +1061,11 @@ export const ComponentsTree = () => {
                   <div
                     key={node.nodeId}
                     className={cn(
-                      'absolute left-0 w-full overflow-hidden',
-                      'text-neutral-400 hover:text-neutral-300',
-                      'bg-transparent hover:bg-[#5f3f9a]/20',
+                      "absolute left-0 w-full overflow-hidden",
+                      "text-neutral-400 hover:text-neutral-300",
+                      "bg-transparent hover:bg-[#5f3f9a]/20",
                       (isSelected || isKeyboardSelected) &&
-                        'text-neutral-300 bg-[#5f3f9a]/40 hover:bg-[#5f3f9a]/40',
+                        "text-neutral-300 bg-[#5f3f9a]/40 hover:bg-[#5f3f9a]/40",
                     )}
                     style={{
                       top: virtualItem.start,

@@ -1,5 +1,5 @@
 {
-  "name": "@react-scan/extension",
+  "name": "@react-scan-pro/extension",
   "version": "0.5.7",
   "private": true,
   "type": "module",
@@ -23,7 +23,7 @@
     "bippy": "^0.5.39",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "react-scan": "workspace:*",
+    "react-scan-pro": "workspace:*",
     "zod": "^4.4.2"
   },
   "devDependencies": {

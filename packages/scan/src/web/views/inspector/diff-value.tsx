@@ -1,8 +1,8 @@
-import { useState } from 'preact/hooks';
-import { CopyToClipboard } from '~web/components/copy-to-clipboard';
-import { Icon } from '~web/components/icon';
-import { cn } from '~web/utils/helpers';
-import { formatForClipboard, formatValuePreview, safeGetValue } from './utils';
+import { useState } from "preact/hooks";
+import { CopyToClipboard } from "~web/components/copy-to-clipboard";
+import { Icon } from "~web/components/icon";
+import { cn } from "~web/utils/helpers";
+import { formatForClipboard, formatValuePreview, safeGetValue } from "./utils";
 
 const ArrayHeader = ({
   length,
@@ -16,18 +16,14 @@ const ArrayHeader = ({
   isNegative: boolean;
 }) => (
   <div className="flex items-center gap-1">
-    <button
-      type="button"
-      onClick={onToggle}
-      className="flex items-center p-0 opacity-50"
-    >
+    <button type="button" onClick={onToggle} className="flex items-center p-0 opacity-50">
       <Icon
         name="icon-chevron-right"
         size={12}
         className={cn(
-          'transition-[color,transform]',
-          isNegative ? 'text-[#f87171]' : 'text-[#4ade80]',
-          expanded && 'rotate-90',
+          "transition-[color,transform]",
+          isNegative ? "text-[#f87171]" : "text-[#4ade80]",
+          expanded && "rotate-90",
         )}
       />
     </button>
@@ -45,9 +41,7 @@ const TreeNode = ({
   isNegative: boolean;
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const canExpand = value !== null &&
-    typeof value === 'object' &&
-    !(value instanceof Date);
+  const canExpand = value !== null && typeof value === "object" && !(value instanceof Date);
 
   if (!canExpand) {
     return (
@@ -72,28 +66,25 @@ const TreeNode = ({
             name="icon-chevron-right"
             size={12}
             className={cn(
-              'transition-[color,transform]',
-              isNegative ? 'text-[#f87171]' : 'text-[#4ade80]',
-              isExpanded && 'rotate-90',
+              "transition-[color,transform]",
+              isNegative ? "text-[#f87171]" : "text-[#4ade80]",
+              isExpanded && "rotate-90",
             )}
           />
         </button>
         <span className="text-gray-500">{path}:</span>
         {!isExpanded && (
           <span className="truncate">
-            {value instanceof Date ? formatValuePreview(value) : `{${Object.keys(value).join(', ')}}`}
+            {value instanceof Date
+              ? formatValuePreview(value)
+              : `{${Object.keys(value).join(", ")}}`}
           </span>
         )}
       </div>
       {isExpanded && (
         <div className="pl-5 border-l border-[#333] mt-0.5 ml-1 flex flex-col gap-0.5">
           {entries.map(([key, val]) => (
-            <TreeNode
-              key={key}
-              value={val}
-              path={key}
-              isNegative={isNegative}
-            />
+            <TreeNode key={key} value={val} path={key} isNegative={isNegative} />
           ))}
         </div>
       )}
@@ -119,9 +110,7 @@ export const DiffValueView = ({
   }
 
   const isExpandable =
-    safeValue !== null &&
-    typeof safeValue === 'object' &&
-    !(safeValue instanceof Promise);
+    safeValue !== null && typeof safeValue === "object" && !(safeValue instanceof Promise);
 
   if (!isExpandable) {
     return <span>{formatValuePreview(safeValue)}</span>;
@@ -164,15 +153,15 @@ export const DiffValueView = ({
       <button
         type="button"
         onClick={onToggle}
-        className={cn('flex items-center', 'p-0 mt-0.5 mr-1', 'opacity-50')}
+        className={cn("flex items-center", "p-0 mt-0.5 mr-1", "opacity-50")}
       >
         <Icon
           name="icon-chevron-right"
           size={12}
           className={cn(
-            'transition-[color,transform]',
-            isNegative ? 'text-[#f87171]' : 'text-[#4ade80]',
-            expanded && 'rotate-90',
+            "transition-[color,transform]",
+            isNegative ? "text-[#f87171]" : "text-[#4ade80]",
+            expanded && "rotate-90",
           )}
         />
       </button>
@@ -180,16 +169,11 @@ export const DiffValueView = ({
         {!expanded ? (
           <span>{formatValuePreview(safeValue)}</span>
         ) : (
-            <div className="pl-2 border-l border-[#333] mt-0.5 ml-1 flex flex-col gap-0.5">
-              {Object.entries(safeValue as object).map(([key, val]) => (
-                <TreeNode
-                  key={key}
-                  value={val}
-                  path={key}
-                  isNegative={isNegative}
-                />
-              ))}
-            </div>
+          <div className="pl-2 border-l border-[#333] mt-0.5 ml-1 flex flex-col gap-0.5">
+            {Object.entries(safeValue as object).map(([key, val]) => (
+              <TreeNode key={key} value={val} path={key} isNegative={isNegative} />
+            ))}
+          </div>
         )}
       </div>
       <CopyToClipboard

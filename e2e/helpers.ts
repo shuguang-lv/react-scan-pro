@@ -1,30 +1,26 @@
-import { type Locator, type Page } from '@playwright/test';
+import { type Locator, type Page } from "@playwright/test";
 
-export const FIXTURE_URL = '/?example=e2e-fixture';
+export const FIXTURE_URL = "/?example=e2e-fixture";
 
 export const TOOLBAR_SELECTORS = {
-  root: '#react-scan-root',
-  widget: '#react-scan-toolbar',
-  inspectButton: '#react-scan-inspect-element',
-  notificationsButton: '#react-scan-notifications',
-  outlineToggle: '.react-scan-toggle input[type="checkbox"]',
-  closeButton: '.react-scan-close-button[title="Close"]',
-  inspectorPanel: '.react-scan-inspector',
-  overlayCanvas: 'canvas.react-scan-inspector-overlay',
+  root: "#react-scan-pro-root",
+  widget: "#react-scan-pro-toolbar",
+  inspectButton: "#react-scan-pro-inspect-element",
+  notificationsButton: "#react-scan-pro-notifications",
+  outlineToggle: '.react-scan-pro-toggle input[type="checkbox"]',
+  closeButton: '.react-scan-pro-close-button[title="Close"]',
+  inspectorPanel: ".react-scan-pro-inspector",
+  overlayCanvas: "canvas.react-scan-pro-inspector-overlay",
 } as const;
 
-export type InspectStateKind =
-  | 'uninitialized'
-  | 'inspect-off'
-  | 'inspecting'
-  | 'focused';
+export type InspectStateKind = "uninitialized" | "inspect-off" | "inspecting" | "focused";
 
 export async function gotoFixture(page: Page): Promise<void> {
   await page.goto(FIXTURE_URL);
   await page.waitForSelector('[data-testid="heading"]', { timeout: 10_000 });
-  // Wait for React Scan to boot and expose __REACT_SCAN__
+  // Wait for React Scan Pro to boot and expose __REACT_SCAN__
   await page.waitForFunction(
-    () => typeof (window as any).__REACT_SCAN__?.ReactScanInternals !== 'undefined',
+    () => typeof (window as any).__REACT_SCAN__?.ReactScanInternals !== "undefined",
     { timeout: 15_000 },
   );
   // Install a render counter by patching the onRender option on the signal
@@ -54,10 +50,7 @@ export async function getRenderCount(page: Page): Promise<number> {
   return page.evaluate(() => (window as any).__E2E_RENDER_COUNT__ ?? 0);
 }
 
-export async function waitForRenders(
-  page: Page,
-  timeout = 5000,
-): Promise<number> {
+export async function waitForRenders(page: Page, timeout = 5000): Promise<number> {
   const startCount = await getRenderCount(page);
   return page.evaluate(
     ({ start, t }) => {
@@ -86,19 +79,17 @@ export async function waitForRenders(
 
 export async function isReactScanActive(page: Page): Promise<boolean> {
   return page.evaluate(() => {
-    return typeof (window as any).__REACT_SCAN__ !== 'undefined';
+    return typeof (window as any).__REACT_SCAN__ !== "undefined";
   });
 }
 
 export async function hasShadowRoot(page: Page): Promise<boolean> {
   return page.evaluate(() => {
-    return document.getElementById('react-scan-root')?.shadowRoot != null;
+    return document.getElementById("react-scan-pro-root")?.shadowRoot != null;
   });
 }
 
-export async function getInspectStateKind(
-  page: Page,
-): Promise<InspectStateKind | null> {
+export async function getInspectStateKind(page: Page): Promise<InspectStateKind | null> {
   return page.evaluate(() => {
     const scan = (window as any).__REACT_SCAN__;
     return scan?.ReactScanInternals?.Store?.inspectState?.value?.kind ?? null;
@@ -113,18 +104,14 @@ export async function waitForInspectStateKind(
   await page.waitForFunction(
     (kind) => {
       const scan = (window as any).__REACT_SCAN__;
-      return (
-        scan?.ReactScanInternals?.Store?.inspectState?.value?.kind === kind
-      );
+      return scan?.ReactScanInternals?.Store?.inspectState?.value?.kind === kind;
     },
     expectedKind,
     { timeout },
   );
 }
 
-export async function isOutlineInstrumentationPaused(
-  page: Page,
-): Promise<boolean | null> {
+export async function isOutlineInstrumentationPaused(page: Page): Promise<boolean | null> {
   return page.evaluate(() => {
     const scan = (window as any).__REACT_SCAN__;
     const instrumentation = scan?.ReactScanInternals?.instrumentation;
@@ -151,7 +138,7 @@ export function outlineToggle(page: Page): Locator {
 }
 
 export async function waitForToolbarReady(page: Page): Promise<void> {
-  await inspectButton(page).waitFor({ state: 'visible', timeout: 10_000 });
+  await inspectButton(page).waitFor({ state: "visible", timeout: 10_000 });
 }
 
 // When the widget is expanded, the absolutely-positioned resize handles sit on
@@ -159,7 +146,7 @@ export async function waitForToolbarReady(page: Page): Promise<void> {
 // Dispatching the click directly on the control drives its handler regardless
 // of layering, which is what we want when asserting control behavior.
 export async function clickToolbarControl(locator: Locator): Promise<void> {
-  await locator.dispatchEvent('click');
+  await locator.dispatchEvent("click");
 }
 
 // The overlay buttons live in the shadow root, so clicking them makes the
@@ -175,13 +162,10 @@ export async function blurOverlay(page: Page): Promise<void> {
 export async function enterInspectMode(page: Page): Promise<void> {
   await waitForToolbarReady(page);
   await inspectButton(page).click();
-  await waitForInspectStateKind(page, 'inspecting');
+  await waitForInspectStateKind(page, "inspecting");
 }
 
-export async function focusComponent(
-  page: Page,
-  targetSelector: string,
-): Promise<void> {
+export async function focusComponent(page: Page, targetSelector: string): Promise<void> {
   // While inspecting, the overlay event-catcher covers the page, so the
   // standard element-targeted click fails Playwright actionability checks.
   // Drive raw pointer coordinates instead: the overlay resolves the element
@@ -199,5 +183,5 @@ export async function focusComponent(
   await page.mouse.move(centerX + 1, centerY + 1);
   await page.waitForTimeout(40);
   await page.mouse.click(centerX, centerY);
-  await waitForInspectStateKind(page, 'focused');
+  await waitForInspectStateKind(page, "focused");
 }

@@ -8,21 +8,13 @@ type ChanelName = string;
 
 type PerformanceEntryChannelsType<T> = {
   subscribe: (to: ChanelName, cb: Callback<T>) => UnSubscribe;
-  publish: (
-    item: T,
-    to: ChanelName,
-    dropFirst: boolean,
-    createIfNoChannel: boolean
-  ) => void;
-  channels: Record<
-    ChanelName,
-    { callbacks: BoundedArray<Callback<T>>; state: BoundedArray<T> }
-  >;
+  publish: (item: T, to: ChanelName, dropFirst: boolean, createIfNoChannel: boolean) => void;
+  channels: Record<ChanelName, { callbacks: BoundedArray<Callback<T>>; state: BoundedArray<T> }>;
   getAvailableChannels: () => BoundedArray<string>;
   updateChannelState: (
     channel: ChanelName,
     updater: Updater<T>,
-    createIfNoChannel: boolean
+    createIfNoChannel: boolean,
   ) => void;
 };
 
@@ -61,13 +53,8 @@ class PerformanceEntryChannels<T> implements PerformanceEntryChannelsType<T> {
         });
       }
       return () => {
-        const filtered = this.channels[to].callbacks.filter(
-          (subscribed) => subscribed !== cb
-        );
-        this.channels[to].callbacks = BoundedArray.fromArray(
-          filtered,
-          MAX_CHANNEL_SIZE
-        );
+        const filtered = this.channels[to].callbacks.filter((subscribed) => subscribed !== cb);
+        this.channels[to].callbacks = BoundedArray.fromArray(filtered, MAX_CHANNEL_SIZE);
       };
     };
     const existing = this.channels[to];
@@ -83,11 +70,7 @@ class PerformanceEntryChannels<T> implements PerformanceEntryChannelsType<T> {
     existing.callbacks.push(cb);
     return defer();
   }
-  updateChannelState(
-    channel: ChanelName,
-    updater: Updater<T>,
-    createIfNoChannel = true
-  ) {
+  updateChannelState(channel: ChanelName, updater: Updater<T>, createIfNoChannel = true) {
     const existingChannel = this.channels[channel];
     if (!existingChannel) {
       if (!createIfNoChannel) {
@@ -109,9 +92,7 @@ class PerformanceEntryChannels<T> implements PerformanceEntryChannelsType<T> {
   }
 
   getChannelState(channel: ChanelName) {
-    return (
-      this.channels[channel].state ?? new BoundedArray<T>(MAX_CHANNEL_SIZE)
-    );
+    return this.channels[channel].state ?? new BoundedArray<T>(MAX_CHANNEL_SIZE);
   }
 }
 // todo: discriminated union the events when we start using multiple channels

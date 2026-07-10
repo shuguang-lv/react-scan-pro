@@ -88,7 +88,7 @@ svg {
   }
 }
 
-#react-scan-toolbar {
+#react-scan-pro-toolbar {
   @apply fixed left-0 top-0;
   @apply flex flex-col;
   @apply shadow-lg;
@@ -108,11 +108,11 @@ svg {
 
 /* The toolbar uses select-none for drag UX, so re-enable text selection on
  * content elements (e.g. AI prompt <pre>, search inputs). See #415. */
-#react-scan-toolbar pre,
-#react-scan-toolbar textarea,
-#react-scan-toolbar input[type='text'],
-#react-scan-toolbar input[type='search'],
-#react-scan-toolbar [data-react-scan-selectable] {
+#react-scan-pro-toolbar pre,
+#react-scan-pro-toolbar textarea,
+#react-scan-pro-toolbar input[type="text"],
+#react-scan-pro-toolbar input[type="search"],
+#react-scan-pro-toolbar [data-react-scan-pro-selectable] {
   @apply select-text;
   cursor: text;
 }
@@ -148,10 +148,12 @@ svg {
   @apply inset-y-0;
   @apply w-6;
   @apply cursor-ew-resize;
+  pointer-events: none;
 
   .resize-line-wrapper {
     @apply inset-y-0;
     @apply w-1/2;
+    pointer-events: auto;
   }
 
   &:hover {
@@ -191,10 +193,12 @@ svg {
   @apply inset-x-0;
   @apply h-6;
   @apply cursor-ns-resize;
+  pointer-events: none;
 
   .resize-line-wrapper {
     @apply inset-x-0;
     @apply h-1/2;
+    pointer-events: auto;
   }
 
   &:hover {
@@ -229,7 +233,7 @@ svg {
   }
 }
 
-.react-scan-header {
+.react-scan-pro-header {
   @apply flex items-center gap-x-2;
   @apply pl-3 pr-2;
   @apply min-h-9;
@@ -237,8 +241,8 @@ svg {
   @apply whitespace-nowrap overflow-hidden;
 }
 
-.react-scan-replay-button,
-.react-scan-close-button {
+.react-scan-pro-replay-button,
+.react-scan-pro-close-button {
   @apply flex items-center;
   @apply p-1;
   @apply min-w-fit;
@@ -246,7 +250,7 @@ svg {
   @apply transition-all duration-300;
 }
 
-.react-scan-replay-button {
+.react-scan-pro-replay-button {
   @apply relative;
   @apply overflow-hidden;
   @apply !bg-purple-500/50;
@@ -266,16 +270,11 @@ svg {
     @apply inset-0;
     @apply -translate-x-full;
     animation: shimmer 2s infinite;
-    background: linear-gradient(
-      to right,
-      transparent,
-      rgba(142, 97, 227, 0.3),
-      transparent
-    );
+    background: linear-gradient(to right, transparent, rgba(142, 97, 227, 0.3), transparent);
   }
 }
 
-.react-scan-close-button {
+.react-scan-pro-close-button {
   @apply bg-white/10;
 
   &:hover {
@@ -298,7 +297,7 @@ svg {
   @apply bg-[#0a0a0a] border-b-1 border-[#222];
 }
 
-.react-scan-section {
+.react-scan-pro-section {
   @apply flex flex-col;
   @apply px-2;
   @apply text-[#888];
@@ -325,24 +324,24 @@ svg {
   @apply overflow-hidden;
 }
 
-.react-scan-string {
+.react-scan-pro-string {
   color: #9ecbff;
 }
 
-.react-scan-number {
+.react-scan-pro-number {
   color: #79c7ff;
 }
 
-.react-scan-boolean {
+.react-scan-pro-boolean {
   color: #56b6c2;
 }
 
-.react-scan-key {
+.react-scan-pro-key {
   @apply w-fit max-w-60;
   @apply text-white whitespace-nowrap;
 }
 
-.react-scan-input {
+.react-scan-pro-input {
   @apply text-white;
   @apply bg-black;
 }
@@ -356,7 +355,7 @@ svg {
   }
 }
 
-.react-scan-arrow {
+.react-scan-pro-arrow {
   @apply absolute top-0 left-7;
   @apply flex items-center justify-center;
   @apply cursor-pointer;
@@ -369,7 +368,7 @@ svg {
   }
 }
 
-.react-scan-nested {
+.react-scan-pro-nested {
   @apply relative;
   @apply overflow-hidden;
 
@@ -381,7 +380,7 @@ svg {
   }
 }
 
-.react-scan-settings {
+.react-scan-pro-settings {
   @apply absolute inset-0;
   @apply flex flex-col gap-4;
   @apply py-2 px-4;
@@ -393,12 +392,12 @@ svg {
   }
 }
 
-.react-scan-preview-line {
+.react-scan-pro-preview-line {
   @apply relative;
   @apply flex items-center min-h-7 gap-x-2;
 }
 
-.react-scan-flash-overlay {
+.react-scan-pro-flash-overlay {
   @apply absolute inset-0;
   @apply opacity-0;
   @apply z-50;
@@ -408,7 +407,7 @@ svg {
   @apply bg-purple-500/90;
 }
 
-.react-scan-toggle {
+.react-scan-pro-toggle {
   @apply relative;
   @apply inline-flex;
   @apply w-10 h-6;
@@ -453,12 +452,12 @@ svg {
   }
 }
 
-.react-scan-flash-active {
+.react-scan-pro-flash-active {
   @apply opacity-40;
   @apply transition-opacity duration-300;
 }
 
-.react-scan-inspector-overlay {
+.react-scan-pro-inspector-overlay {
   @apply flex flex-col;
   @apply opacity-0;
   @apply transition-opacity duration-200 ease-out;
@@ -473,7 +472,7 @@ svg {
   }
 }
 
-.react-scan-what-changed {
+.react-scan-pro-what-changed {
   ul {
     @apply list-disc;
     @apply pl-4;
@@ -522,7 +521,7 @@ svg {
   }
 }
 
-.react-scan-slider {
+.react-scan-pro-slider {
   @apply relative;
   @apply min-h-6;
 
@@ -626,7 +625,7 @@ svg {
   }
 }
 
-.react-scan-toolbar-notification {
+.react-scan-pro-toolbar-notification {
   @apply absolute inset-x-0;
   @apply flex items-center gap-x-2;
   @apply p-1 pl-2 text-[10px];
@@ -664,7 +663,7 @@ svg {
   }
 }
 
-.react-scan-header-item {
+.react-scan-pro-header-item {
   @apply absolute inset-0 -translate-y-[200%];
   @apply transition-transform duration-300;
 
@@ -673,12 +672,11 @@ svg {
   }
 }
 
-.react-scan-components-tree:has(.resize-v-line:hover, .resize-v-line:active)
-  .tree {
+.react-scan-pro-components-tree:has(.resize-v-line:hover, .resize-v-line:active) .tree {
   overflow: hidden;
 }
 
-.react-scan-expandable {
+.react-scan-pro-expandable {
   display: grid;
   grid-template-rows: 0fr;
   @apply overflow-hidden;
@@ -689,7 +687,7 @@ svg {
     min-height: 0;
   }
 
-  &.react-scan-expanded {
+  &.react-scan-pro-expanded {
     grid-template-rows: 1fr;
     transition-duration: 100ms;
   }

@@ -1,8 +1,8 @@
-import browser from 'webextension-polyfill';
+import browser from "webextension-polyfill";
 
 export enum IconState {
-  DISABLED = 'disabled',
-  ENABLED = 'enabled',
+  DISABLED = "disabled",
+  ENABLED = "enabled",
 }
 
 const browserAction = browser.action || browser.browserAction;
@@ -10,18 +10,18 @@ const browserAction = browser.action || browser.browserAction;
 const cachedIcons = {
   [IconState.ENABLED]: {
     path: {
-      16: browser.runtime.getURL('icons/enabled/16.png'),
-      32: browser.runtime.getURL('icons/enabled/32.png'),
-      48: browser.runtime.getURL('icons/enabled/48.png'),
-      128: browser.runtime.getURL('icons/enabled/128.png'),
+      16: browser.runtime.getURL("icons/enabled/16.png"),
+      32: browser.runtime.getURL("icons/enabled/32.png"),
+      48: browser.runtime.getURL("icons/enabled/48.png"),
+      128: browser.runtime.getURL("icons/enabled/128.png"),
     },
   },
   [IconState.DISABLED]: {
     path: {
-      16: browser.runtime.getURL('icons/disabled/16.png'),
-      32: browser.runtime.getURL('icons/disabled/32.png'),
-      48: browser.runtime.getURL('icons/disabled/48.png'),
-      128: browser.runtime.getURL('icons/disabled/128.png'),
+      16: browser.runtime.getURL("icons/disabled/16.png"),
+      32: browser.runtime.getURL("icons/disabled/32.png"),
+      48: browser.runtime.getURL("icons/disabled/48.png"),
+      128: browser.runtime.getURL("icons/disabled/128.png"),
     },
   },
 };
@@ -29,7 +29,7 @@ const cachedIcons = {
 export const updateIconForTab = async (
   tab: browser.Tabs.Tab,
   state: IconState,
-  badgeText = 'on',
+  badgeText = "on",
 ): Promise<void> => {
   try {
     switch (state) {
@@ -41,7 +41,7 @@ export const updateIconForTab = async (
         if (badgeText) {
           await browserAction.setBadgeText({ text: badgeText, tabId: tab.id });
           await browserAction.setBadgeBackgroundColor({
-            color: '#A295EE',
+            color: "#A295EE",
             tabId: tab.id,
           });
         }
@@ -52,7 +52,7 @@ export const updateIconForTab = async (
           tabId: tab.id,
           path: cachedIcons[IconState.DISABLED].path,
         });
-        await browserAction.setBadgeText({ text: '', tabId: tab.id });
+        await browserAction.setBadgeText({ text: "", tabId: tab.id });
         break;
     }
   } catch {}

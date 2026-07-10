@@ -4,7 +4,7 @@
 
 Add the script tag to your `app/layout`.
 
-Refer to the [CDN Guide](https://github.com/aidenybai/react-scan/blob/main/docs/installation/cdn.md) for the available URLs.
+Refer to the [CDN Guide](https://github.com/shuguang-lv/react-scan-pro/blob/main/docs/installation/cdn.md) for the available URLs.
 
 ```jsx
 // app/layout
@@ -12,7 +12,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <script src="https://unpkg.com/react-scan/dist/auto.global.js" />
+        <script src="https://unpkg.com/react-scan-pro/dist/auto.global.js" />
         {/* rest of your scripts go under */}
       </head>
       <body>{children}</body>
@@ -29,8 +29,8 @@ Create a `<ReactScan>` client component:
 // path/to/ReactScanComponent
 
 "use client";
-// react-scan must be imported before react
-import { scan } from "react-scan";
+// react-scan-pro must be imported before react
+import { scan } from "react-scan-pro";
 import { JSX, useEffect } from "react";
 
 export function ReactScan(): JSX.Element {
@@ -64,8 +64,9 @@ export default function RootLayout({ children }) {
 }
 ```
 
-If you want react-scan to also run in production, use the react-scan/all-environments import path
+If you want react-scan-pro to also run in production, use the react-scan-pro/all-environments import path
+
 ```diff
-- import { scan } from "react-scan";
-+ import { scan } from "react-scan/all-environments";
+- import { scan } from "react-scan-pro";
++ import { scan } from "react-scan-pro/all-environments";
 ```

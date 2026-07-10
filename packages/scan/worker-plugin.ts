@@ -1,4 +1,4 @@
-import * as esbuild from 'esbuild';
+import * as esbuild from "esbuild";
 
 /**
  * A hacky plugin to build the worker file (resolving all imports), and inline
@@ -6,14 +6,14 @@ import * as esbuild from 'esbuild';
  * build output
  */
 export const workerPlugin = {
-  name: 'worker-plugin',
+  name: "worker-plugin",
   setup(build) {
     const workerResult = esbuild.buildSync({
-      entryPoints: ['src/new-outlines/offscreen-canvas.worker.ts'],
+      entryPoints: ["src/new-outlines/offscreen-canvas.worker.ts"],
       bundle: true,
       write: false,
-      format: 'iife',
-      platform: 'browser',
+      format: "iife",
+      platform: "browser",
       minify: true,
     });
     const workerCode = workerResult.outputFiles[0].text;

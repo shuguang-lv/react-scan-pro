@@ -1,7 +1,7 @@
 {
-  "name": "@react-scan/kitchen-sink",
-  "type": "module",
+  "name": "@react-scan-pro/kitchen-sink",
   "private": true,
+  "type": "module",
   "publishConfig": {
     "access": "restricted"
   },
@@ -13,7 +13,7 @@
   "dependencies": {
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "react-scan": "workspace:*",
+    "react-scan-pro": "workspace:*",
     "tailwindcss": "^4.2.4"
   },
   "devDependencies": {

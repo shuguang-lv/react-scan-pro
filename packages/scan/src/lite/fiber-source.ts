@@ -1,11 +1,11 @@
-import { type Fiber, getDisplayName } from 'bippy';
+import { type Fiber, getDisplayName } from "bippy";
 import {
   type FiberSource,
   formatOwnerStack,
   hasDebugSource,
   hasDebugStack,
   parseStack,
-} from 'bippy/source';
+} from "bippy/source";
 
 /**
  * Synchronous source extraction. We deliberately avoid `bippy/source`'s

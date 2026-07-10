@@ -31,7 +31,7 @@ export default function Header() {
   return (
     <nav className="relative flex items-center justify-between text-base sm:text-lg">
       <Link href="/" className="flex items-center gap-3 text-inherit no-underline">
-        <Image src="/logo.svg" alt="React Scan" width={30} height={30} />
+        <Image src="/logo.svg" alt="React Scan Pro" width={30} height={30} />
       </Link>
 
       <button
@@ -61,7 +61,7 @@ export default function Header() {
 
       <div className="hidden md:flex gap-4 text-sm sm:text-base">
         <Link
-          href="https://github.com/aidenybai/react-scan#readme"
+          href="https://github.com/shuguang-lv/react-scan-pro#readme"
           className="text-white/50 underline hover:text-white transition-colors"
           target="_blank"
           rel="noopener noreferrer"
@@ -69,7 +69,7 @@ export default function Header() {
           docs
         </Link>
         <Link
-          href="https://github.com/aidenybai/react-scan"
+          href="https://github.com/shuguang-lv/react-scan-pro"
           className="text-white/50 underline hover:text-white transition-colors"
           target="_blank"
           rel="noopener noreferrer"
@@ -85,7 +85,7 @@ export default function Header() {
         >
           <div className="divide-y divide-white/10">
             <Link
-              href="https://github.com/aidenybai/react-scan#readme"
+              href="https://github.com/shuguang-lv/react-scan-pro#readme"
               className="block px-4 py-3 text-white/60 hover:bg-white/5 hover:text-white transition-colors"
               target="_blank"
               rel="noopener noreferrer"
@@ -94,7 +94,7 @@ export default function Header() {
               docs
             </Link>
             <Link
-              href="https://github.com/aidenybai/react-scan"
+              href="https://github.com/shuguang-lv/react-scan-pro"
               className="block px-4 py-3 text-white/60 hover:bg-white/5 hover:text-white transition-colors"
               target="_blank"
               rel="noopener noreferrer"

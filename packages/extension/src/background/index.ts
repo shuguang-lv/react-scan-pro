@@ -1,7 +1,7 @@
-import browser from 'webextension-polyfill';
-import { isInternalUrl } from '~utils/helpers';
-import { IconState, updateIconForTab } from './icon';
-import { BroadcastMessage } from '~types/messages';
+import browser from "webextension-polyfill";
+import { isInternalUrl } from "~utils/helpers";
+import { IconState, updateIconForTab } from "./icon";
+import { BroadcastMessage } from "~types/messages";
 
 const browserAction = browser.action || browser.browserAction;
 
@@ -9,21 +9,21 @@ const injectScripts = async (tabId: number) => {
   try {
     await browser.scripting.executeScript({
       target: { tabId },
-      files: ['src/content/index.js', 'src/inject/index.js'],
+      files: ["src/content/index.js", "src/inject/index.js"],
     });
 
     await browser.tabs.sendMessage(tabId, {
-      type: 'react-scan:page-reload',
+      type: "react-scan-pro:page-reload",
     });
   } catch (e) {
     // oxlint-disable-next-line no-console
-    console.error('Script injection error:', e);
+    console.error("Script injection error:", e);
   }
 };
 
 const isScriptsLoaded = async (tabId: number): Promise<boolean> => {
   try {
-    await browser.tabs.sendMessage(tabId, { type: 'react-scan:ping' });
+    await browser.tabs.sendMessage(tabId, { type: "react-scan-pro:ping" });
     return true;
   } catch {
     return false;
@@ -50,7 +50,7 @@ const init = async (tab: browser.Tabs.Tab) => {
 };
 
 browser.tabs.onUpdated.addListener((_tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete') {
+  if (changeInfo.status === "complete") {
     void init(tab);
   }
 });
@@ -85,7 +85,7 @@ browserAction.onClicked.addListener(async (tab) => {
 
   try {
     await browser.tabs.sendMessage(tab.id, {
-      type: 'react-scan:toggle-state',
+      type: "react-scan-pro:toggle-state",
     });
 
     await updateIconForTab(tab, IconState.DISABLED);
@@ -96,15 +96,10 @@ browserAction.onClicked.addListener(async (tab) => {
   }
 });
 
-browser.runtime.onMessage.addListener(
-  (message: unknown, sender: browser.Runtime.MessageSender) => {
-    const msg = message as BroadcastMessage;
-    if (!sender.tab?.id) return;
-    if (msg.type === 'react-scan:is-enabled') {
-      void updateIconForTab(
-        sender.tab,
-        msg.data?.state ? IconState.ENABLED : IconState.DISABLED,
-      );
-    }
-  },
-);
+browser.runtime.onMessage.addListener((message: unknown, sender: browser.Runtime.MessageSender) => {
+  const msg = message as BroadcastMessage;
+  if (!sender.tab?.id) return;
+  if (msg.type === "react-scan-pro:is-enabled") {
+    void updateIconForTab(sender.tab, msg.data?.state ? IconState.ENABLED : IconState.DISABLED);
+  }
+});

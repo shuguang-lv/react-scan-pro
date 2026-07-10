@@ -4,7 +4,7 @@
 
 Add the script tag to your `Layout` component in the `app/root`.
 
-Refer to the [CDN Guide](https://github.com/aidenybai/react-scan/blob/main/docs/installation/cdn.md) for the available URLs.
+Refer to the [CDN Guide](https://github.com/shuguang-lv/react-scan-pro/blob/main/docs/installation/cdn.md) for the available URLs.
 
 ```jsx
 // app/root
@@ -13,7 +13,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
-        <script src="https://unpkg.com/react-scan/dist/auto.global.js" />
+        <script src="https://unpkg.com/react-scan-pro/dist/auto.global.js" />
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
@@ -41,13 +41,13 @@ Add the following code to your `app/root`
 // app/root
 
 // Must be imported before React Router
-import { scan } from "react-scan"; 
+import { scan } from "react-scan-pro";
 import { Links, Meta, Scripts, ScrollRestoration } from "react-router";
 import { useEffect } from "react";
 
 export function Layout({ children }) {
   useEffect(() => {
-    // Make sure to run react-scan only after hydration
+    // Make sure to run react-scan-pro only after hydration
     scan({
       enabled: true,
     });
@@ -73,11 +73,12 @@ export function Layout({ children }) {
 // ...
 ```
 
-If you want react-scan to also run in production, use the react-scan/all-environments import path
+If you want react-scan-pro to also run in production, use the react-scan-pro/all-environments import path
+
 ```diff
-- import { scan } from "react-scan";
-+ import { scan } from "react-scan/all-environments";
+- import { scan } from "react-scan-pro";
++ import { scan } from "react-scan-pro/all-environments";
 ```
 
 > [!CAUTION]
-> React Scan must be imported before React (and other React renderers like React DOM), as well as React Router, in your entire project, as it needs to hijack React DevTools before React gets to access it.
+> React Scan Pro must be imported before React (and other React renderers like React DOM), as well as React Router, in your entire project, as it needs to hijack React DevTools before React gets to access it.

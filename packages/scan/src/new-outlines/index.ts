@@ -23,6 +23,13 @@ import {
   getStateChanges,
   OldRenderData,
 } from "~core/instrumentation";
+import {
+  beginReportCommit,
+  getReportSessionScope,
+  isReportSessionActive,
+  recordReportRender,
+} from "~core/reporting";
+import { beginScopeCommit, getScopeMatch } from "~core/scope";
 import { log, logIntro } from "~web/utils/log";
 import { inspectorUpdateSignal } from "~web/views/inspector/states";
 import { OUTLINE_ARRAY_SIZE, drawCanvas, initCanvas, updateOutlines, updateScroll } from "./canvas";
@@ -281,7 +288,7 @@ const getDpr = () => {
 const getCanvasEl = () => {
   cleanup();
   const host = document.createElement("div");
-  host.setAttribute("data-react-scan", "true");
+  host.setAttribute("data-react-scan-pro", "true");
   const shadowRoot = host.attachShadow({ mode: "open" });
 
   const canvasEl = document.createElement("canvas");
@@ -310,7 +317,12 @@ const getCanvasEl = () => {
   // we still render outlines on the main thread via `initCanvas` below.
   const workerOptOut = ReactScanInternals.options.value.useOffscreenCanvasWorker === false;
 
-  if (IS_OFFSCREEN_CANVAS_WORKER_SUPPORTED && !window.__REACT_SCAN_EXTENSION__ && !workerOptOut) {
+  if (
+    IS_OFFSCREEN_CANVAS_WORKER_SUPPORTED &&
+    !window.__REACT_SCAN_PRO_EXTENSION__ &&
+    !window.__REACT_SCAN_EXTENSION__ &&
+    !workerOptOut
+  ) {
     try {
       const blobUrl = URL.createObjectURL(
         new Blob([workerCode], { type: "application/javascript" }),
@@ -419,11 +431,11 @@ const getCanvasEl = () => {
 };
 
 const hasStopped = () => {
-  return globalThis.__REACT_SCAN_STOP__;
+  return globalThis.__REACT_SCAN_PRO_STOP__ || globalThis.__REACT_SCAN_STOP__;
 };
 
 const cleanup = () => {
-  const host = document.querySelector("[data-react-scan]");
+  const host = document.querySelector("[data-react-scan-pro]");
   if (host) {
     host.remove();
   }
@@ -512,7 +524,8 @@ const isValidFiber = (fiber: Fiber) => {
     return false;
   }
 
-  return true;
+  const scope = getReportSessionScope() ?? ReactScanInternals.options.value.scope;
+  return getScopeMatch(fiber, scope).isMatch;
 };
 let isInstrumentationInitialized = false;
 
@@ -541,8 +554,10 @@ export const initReactScanInstrumentation = (setupToolbar: () => void) => {
     }); // TODO(Alexis): perhaps a better timing
   };
 
-  const instrumentation = createInstrumentation("react-scan-devtools-0.1.0", {
+  const instrumentation = createInstrumentation("react-scan-pro-devtools-0.1.0", {
     onCommitStart: () => {
+      beginScopeCommit();
+      beginReportCommit();
       ReactScanInternals.options.value.onCommitStart?.();
     },
     onActive: (() => {
@@ -553,10 +568,11 @@ export const initReactScanInstrumentation = (setupToolbar: () => void) => {
         didActivate = true;
 
         scheduleSetup();
-        if (!window.__REACT_SCAN_EXTENSION__) {
-          globalThis.__REACT_SCAN__ = {
+        if (!window.__REACT_SCAN_PRO_EXTENSION__ && !window.__REACT_SCAN_EXTENSION__) {
+          globalThis.__REACT_SCAN_PRO__ = {
             ReactScanInternals,
           };
+          globalThis.__REACT_SCAN__ = globalThis.__REACT_SCAN_PRO__;
         }
         startReportInterval();
         logIntro();
@@ -579,6 +595,7 @@ export const initReactScanInstrumentation = (setupToolbar: () => void) => {
       if (shouldFullyAbort) {
         return;
       }
+      recordReportRender(fiber, renders);
       if (!isOverlayPaused) {
         outlineFiber(fiber);
       }
@@ -603,7 +620,7 @@ export const initReactScanInstrumentation = (setupToolbar: () => void) => {
     onPostCommitFiberRoot() {
       scheduleSetup();
     },
-    trackChanges: false,
+    trackChanges: isReportSessionActive,
   });
   ReactScanInternals.instrumentation = instrumentation;
 };

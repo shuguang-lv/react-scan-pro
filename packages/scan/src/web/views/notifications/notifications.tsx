@@ -175,10 +175,10 @@ const NotificationAudio = () => {
   // oxlint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     // todo: sync with options
-    const audioEnabledString = localStorage.getItem("react-scan-notifications-audio");
+    const audioEnabledString = localStorage.getItem("react-scan-pro-notifications-audio");
 
     if (audioEnabledString !== "false" && audioEnabledString !== "true") {
-      localStorage.setItem("react-scan-notifications-audio", "false");
+      localStorage.setItem("react-scan-pro-notifications-audio", "false");
       return;
     }
 

@@ -1,26 +1,18 @@
-import { computed, untracked, useSignalEffect } from '@preact/signals';
-import type { Fiber } from 'bippy';
-import { Component } from 'preact';
-import { useEffect, useRef } from 'preact/hooks';
-import { Store } from '~core/index';
-import { Icon } from '~web/components/icon';
-import { signalIsSettingsOpen, signalWidgetViews } from '~web/state';
-import { cn } from '~web/utils/helpers';
-import { constant } from '~web/utils/preact/constant';
-import { ComponentsTree } from './components-tree';
-import { flashManager } from './flash-overlay';
-import {
-  type TimelineUpdate,
-  inspectorUpdateSignal,
-  timelineActions,
-} from './states';
-import {
-  collectInspectorData,
-  getStateNames,
-  resetTracking,
-} from './timeline/utils';
-import { extractMinimalFiberInfo, getCompositeFiberFromElement } from './utils';
-import { WhatChanged } from './what-changed';
+import { computed, untracked, useSignalEffect } from "@preact/signals";
+import type { Fiber } from "bippy";
+import { Component } from "preact";
+import { useEffect, useRef } from "preact/hooks";
+import { Store } from "~core/index";
+import { Icon } from "~web/components/icon";
+import { signalIsSettingsOpen, signalWidgetViews } from "~web/state";
+import { cn } from "~web/utils/helpers";
+import { constant } from "~web/utils/preact/constant";
+import { ComponentsTree } from "./components-tree";
+import { flashManager } from "./flash-overlay";
+import { type TimelineUpdate, inspectorUpdateSignal, timelineActions } from "./states";
+import { collectInspectorData, getStateNames, resetTracking } from "./timeline/utils";
+import { extractMinimalFiberInfo, getCompositeFiberFromElement } from "./utils";
+import { WhatChanged } from "./what-changed";
 
 export const globalInspectorState = {
   lastRendered: new Map<string, unknown>(),
@@ -78,13 +70,13 @@ class InspectorErrorBoundary extends Component {
 
 const inspectorContainerClassName = computed(() =>
   cn(
-    'react-scan-inspector',
-    'flex-1',
-    'opacity-0',
-    'overflow-y-auto overflow-x-hidden',
-    'transition-opacity delay-0',
-    'pointer-events-none',
-    !signalIsSettingsOpen.value && 'opacity-100 delay-300 pointer-events-auto',
+    "react-scan-pro-inspector",
+    "flex-1",
+    "opacity-0",
+    "overflow-y-auto overflow-x-hidden",
+    "transition-opacity delay-0",
+    "pointer-events-none",
+    !signalIsSettingsOpen.value && "opacity-100 delay-300 pointer-events-auto",
   ),
 );
 
@@ -115,13 +107,13 @@ const Inspector = /* @__PURE__ */ constant(() => {
   useSignalEffect(() => {
     const state = Store.inspectState.value;
     untracked(() => {
-      if (state.kind !== 'focused' || !state.focusedDomElement) {
+      if (state.kind !== "focused" || !state.focusedDomElement) {
         refLastInspectedFiber.current = null;
         globalInspectorState.cleanup();
         return;
       }
 
-      if (state.kind === 'focused') {
+      if (state.kind === "focused") {
         signalIsSettingsOpen.value = false;
       }
 
@@ -132,16 +124,15 @@ const Inspector = /* @__PURE__ */ constant(() => {
 
       if (!parentCompositeFiber) {
         Store.inspectState.value = {
-          kind: 'inspect-off',
+          kind: "inspect-off",
         };
         signalWidgetViews.value = {
-          view: 'none',
+          view: "none",
         };
         return;
       }
 
-      const isNewComponent =
-        refLastInspectedFiber.current?.type !== parentCompositeFiber.type;
+      const isNewComponent = refLastInspectedFiber.current?.type !== parentCompositeFiber.type;
 
       if (isNewComponent) {
         refLastInspectedFiber.current = parentCompositeFiber;
@@ -153,10 +144,10 @@ const Inspector = /* @__PURE__ */ constant(() => {
 
   useSignalEffect(() => {
     // NOTE(Alexis): just track
-    inspectorUpdateSignal.value;
+    void inspectorUpdateSignal.value;
     untracked(() => {
       const inspectState = Store.inspectState.value;
-      if (inspectState.kind !== 'focused' || !inspectState.focusedDomElement) {
+      if (inspectState.kind !== "focused" || !inspectState.focusedDomElement) {
         refLastInspectedFiber.current = null;
         globalInspectorState.cleanup();
         return;
@@ -169,10 +160,10 @@ const Inspector = /* @__PURE__ */ constant(() => {
 
       if (!parentCompositeFiber) {
         Store.inspectState.value = {
-          kind: 'inspect-off',
+          kind: "inspect-off",
         };
         signalWidgetViews.value = {
-          view: 'none',
+          view: "none",
         };
         return;
       }
@@ -183,7 +174,7 @@ const Inspector = /* @__PURE__ */ constant(() => {
         refLastInspectedFiber.current = null;
         globalInspectorState.cleanup();
         Store.inspectState.value = {
-          kind: 'inspecting',
+          kind: "inspecting",
           hoveredDomElement: null,
         };
       }
@@ -208,7 +199,7 @@ const Inspector = /* @__PURE__ */ constant(() => {
 });
 
 export const ViewInspector = /* @__PURE__ */ constant(() => {
-  if (Store.inspectState.value.kind !== 'focused') return null;
+  if (Store.inspectState.value.kind !== "focused") return null;
   return (
     <InspectorErrorBoundary>
       <Inspector />

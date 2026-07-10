@@ -1,17 +1,17 @@
-import { test, expect } from '@playwright/test';
-import { gotoFixture, isReactScanActive, hasShadowRoot } from './helpers';
+import { test, expect } from "@playwright/test";
+import { gotoFixture, isReactScanActive, hasShadowRoot } from "./helpers";
 
-test.describe('Toolbar', () => {
+test.describe("Toolbar", () => {
   test.beforeEach(async ({ page }) => {
     await gotoFixture(page);
   });
 
-  test('React Scan initializes and attaches to the page', async ({ page }) => {
+  test("React Scan Pro initializes and attaches to the page", async ({ page }) => {
     const active = await isReactScanActive(page);
     expect(active).toBe(true);
   });
 
-  test('React Scan internals are accessible', async ({ page }) => {
+  test("React Scan Pro internals are accessible", async ({ page }) => {
     const hasInternals = await page.evaluate(() => {
       const scan = (window as any).__REACT_SCAN__;
       return (
@@ -23,7 +23,7 @@ test.describe('Toolbar', () => {
     expect(hasInternals).toBe(true);
   });
 
-  test('options are set correctly', async ({ page }) => {
+  test("options are set correctly", async ({ page }) => {
     const options = await page.evaluate(() => {
       const scan = (window as any).__REACT_SCAN__;
       const opts = scan?.ReactScanInternals?.options?.value;
@@ -41,21 +41,21 @@ test.describe('Toolbar', () => {
     });
   });
 
-  test('shadow DOM root is created', async ({ page }) => {
+  test("shadow DOM root is created", async ({ page }) => {
     await page.waitForTimeout(1000);
     expect(await hasShadowRoot(page)).toBe(true);
   });
 
-  test('toolbar has content in shadow DOM', async ({ page }) => {
+  test("toolbar has content in shadow DOM", async ({ page }) => {
     await page.waitForTimeout(1000);
     const childCount = await page.evaluate(() => {
-      const root = document.getElementById('react-scan-root');
+      const root = document.getElementById("react-scan-pro-root");
       return root?.shadowRoot?.children.length ?? 0;
     });
     expect(childCount).toBeGreaterThan(0);
   });
 
-  test('toolbar persists across interactions', async ({ page }) => {
+  test("toolbar persists across interactions", async ({ page }) => {
     await page.click('[data-testid="increment"]');
     await page.waitForTimeout(500);
 

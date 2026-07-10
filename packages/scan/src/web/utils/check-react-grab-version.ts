@@ -20,7 +20,7 @@ export const checkReactGrabVersion = (): void => {
 
   try {
     fetch(
-      `https://www.react-grab.com/api/version?source=react-scan&v=${REACT_GRAB_VERSION}&t=${Date.now()}`,
+      `https://www.react-grab.com/api/version?source=react-scan-pro&v=${REACT_GRAB_VERSION}&t=${Date.now()}`,
       fetchOptions,
     )
       .then((response) => (response.ok ? response.text() : null))
@@ -31,7 +31,7 @@ export const checkReactGrabVersion = (): void => {
         if (latestVersion === REACT_GRAB_VERSION) return;
         // oxlint-disable-next-line no-console
         console.warn(
-          `[React Scan] react-grab v${REACT_GRAB_VERSION} is outdated (latest: v${latestVersion}). Update react-scan to pick up the newer react-grab.`,
+          `[React Scan Pro] react-grab v${REACT_GRAB_VERSION} is outdated (latest: v${latestVersion}). Update react-scan-pro to pick up the newer react-grab.`,
         );
       })
       .catch(() => null);

@@ -1,5 +1,5 @@
-import { useState, useContext, createContext, memo } from 'react';
-import { scan, Store } from 'react-scan';
+import { useState, useContext, createContext, memo } from "react";
+import { scan, Store } from "react-scan-pro";
 
 Store.isInIframe.value = false;
 scan({
@@ -7,7 +7,7 @@ scan({
   dangerouslyForceRunInProduction: true,
 });
 
-const ThemeContext = createContext('light');
+const ThemeContext = createContext("light");
 
 function Counter(): JSX.Element {
   const [count, setCount] = useState(0);
@@ -28,7 +28,7 @@ function UnstableProps(): JSX.Element {
       <button data-testid="trigger-unstable" type="button" onClick={() => setTick((t) => t + 1)}>
         Trigger ({tick})
       </button>
-      <MemoChild style={{ color: 'red' }} onClick={() => {}} label="unstable" />
+      <MemoChild style={{ color: "red" }} onClick={() => {}} label="unstable" />
     </div>
   );
 }
@@ -55,14 +55,14 @@ function ContextConsumer(): JSX.Element {
 }
 
 function ThemeToggle(): JSX.Element {
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState("light");
   return (
     <ThemeContext.Provider value={theme}>
       <div data-testid="theme-section">
         <button
           data-testid="toggle-theme"
           type="button"
-          onClick={() => setTheme((t) => (t === 'light' ? 'dark' : 'light'))}
+          onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))}
         >
           Toggle Theme
         </button>
@@ -89,7 +89,7 @@ function SlowComponent(): JSX.Element {
       <button data-testid="trigger-slow" type="button" onClick={triggerSlowRender}>
         Trigger Slow Render
       </button>
-      <span data-testid="slow-status">{rendering ? 'Rendering...' : 'Idle'}</span>
+      <span data-testid="slow-status">{rendering ? "Rendering..." : "Idle"}</span>
     </div>
   );
 }
@@ -115,8 +115,8 @@ function RapidUpdater(): JSX.Element {
 
 export default function E2EFixture(): JSX.Element {
   return (
-    <div style={{ padding: 24, fontFamily: 'sans-serif' }}>
-      <h1 data-testid="heading">React Scan E2E Fixture</h1>
+    <div style={{ padding: 24, fontFamily: "sans-serif" }}>
+      <h1 data-testid="heading">React Scan Pro E2E Fixture</h1>
       <hr />
       <section>
         <h2>Counter</h2>

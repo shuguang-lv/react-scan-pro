@@ -1,11 +1,11 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 export const BroadcastSchema = z.object({
   type: z.enum([
-    'react-scan:ping',
-    'react-scan:is-enabled',
-    'react-scan:toggle-state',
-    'react-scan:page-reload',
+    "react-scan-pro:ping",
+    "react-scan-pro:is-enabled",
+    "react-scan-pro:toggle-state",
+    "react-scan-pro:page-reload",
   ]),
   data: z.any().optional(),
 });
@@ -13,12 +13,12 @@ export const BroadcastSchema = z.object({
 export type BroadcastMessage = z.infer<typeof BroadcastSchema>;
 
 export interface IEvents {
-  'react-scan:toggle-state': {
-    topic: 'react-scan:toggle-state';
+  "react-scan-pro:toggle-state": {
+    topic: "react-scan-pro:toggle-state";
     message: undefined;
   };
-  'react-scan:send-to-background': {
-    topic: 'react-scan:send-to-background';
+  "react-scan-pro:send-to-background": {
+    topic: "react-scan-pro:send-to-background";
     message: BroadcastMessage;
   };
 }

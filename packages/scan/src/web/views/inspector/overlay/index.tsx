@@ -395,7 +395,7 @@ export const ScanOverlay = () => {
   };
 
   const handleElementClick = (e: MouseEvent) => {
-    const clickableElements = ["react-scan-inspect-element", "react-scan-power"];
+    const clickableElements = ["react-scan-pro-inspect-element", "react-scan-pro-power"];
     // avoid capturing the synthetic event sent back to the toolbar, we don't want to block click events on it ever
     if (e.target instanceof HTMLElement && clickableElements.includes(e.target.id)) {
       return;
@@ -471,7 +471,7 @@ export const ScanOverlay = () => {
     const canvas = refCanvas.current;
     if (!canvas) return;
 
-    if (document.activeElement?.id === "react-scan-root") {
+    if (document.activeElement?.id === "react-scan-pro-root") {
       return;
     }
 
@@ -666,7 +666,7 @@ export const ScanOverlay = () => {
         ref={refCanvas}
         dir="ltr"
         className={cn(
-          "react-scan-inspector-overlay",
+          "react-scan-pro-inspector-overlay",
           "fixed top-0 left-0 w-screen h-screen",
           "pointer-events-none",
           "z-[214748367]",

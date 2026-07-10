@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'preact/hooks';
+import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
 
 export interface VirtualItem {
   key: number;
@@ -30,8 +24,7 @@ export const useVirtualList = (options: {
     if (!refScrollElement.current) return;
 
     const height =
-      entries?.[0]?.contentRect.height ??
-      refScrollElement.current.getBoundingClientRect().height;
+      entries?.[0]?.contentRect.height ?? refScrollElement.current.getBoundingClientRect().height;
     setContainerHeight(height);
   }, []);
 
@@ -65,7 +58,7 @@ export const useVirtualList = (options: {
     }
     refResizeObserver.current.observe(element);
 
-    element.addEventListener('scroll', handleScroll, { passive: true });
+    element.addEventListener("scroll", handleScroll, { passive: true });
 
     const mutationObserver = new MutationObserver(debouncedUpdateContainer);
     mutationObserver.observe(element, {
@@ -75,7 +68,7 @@ export const useVirtualList = (options: {
     });
 
     return () => {
-      element.removeEventListener('scroll', handleScroll);
+      element.removeEventListener("scroll", handleScroll);
       if (refResizeObserver.current) {
         refResizeObserver.current.disconnect();
       }

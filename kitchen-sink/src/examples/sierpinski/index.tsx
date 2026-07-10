@@ -2,11 +2,10 @@
  *  Modified version of https://github.com/ryansolid/solid-sierpinski-triangle-demo
  **/
 // import { Analytics } from '@vercel/analytics/react';
-import { useEffect, useMemo, useState } from 'react';
-import { scan, Store } from 'react-scan';
+import { useEffect, useMemo, useState } from "react";
+import { scan, Store } from "react-scan-pro";
 
-import './styles.css';
-
+import "./styles.css";
 
 Store.isInIframe.value = false;
 scan({
@@ -45,7 +44,7 @@ const TriangleDemo = () => {
     <div
       className="container"
       style={{
-        transform: 'scaleX(' + scale / 2.1 + ') scaleY(0.7) translateZ(0.1px)',
+        transform: "scaleX(" + scale / 2.1 + ") scaleY(0.7) translateZ(0.1px)",
       }}
     >
       <Triangle x={0} y={0} s={1000} seconds={seconds} />
@@ -80,7 +79,6 @@ const SlowTriangle = ({ x, y, s, seconds }: SlowTriangleProps) => {
 };
 
 interface TriangleProps {
-
   x: number;
   y: number;
   s: number;
@@ -89,9 +87,7 @@ interface TriangleProps {
 
 const Triangle = ({ x, y, s, seconds }: TriangleProps) => {
   if (s <= TARGET) {
-    return (
-      <Dot x={x - TARGET / 2} y={y - TARGET / 2} s={TARGET} text={seconds} />
-    );
+    return <Dot x={x - TARGET / 2} y={y - TARGET / 2} s={TARGET} text={seconds} />;
   }
   return <SlowTriangle x={x} y={y} s={s} seconds={seconds} />;
 };
@@ -112,18 +108,18 @@ const Dot = ({ x, y, s, text }: DotProps) => {
     <div
       className="dot"
       style={{
-        width: s + 'px',
-        height: s + 'px',
-        left: x + 'px',
-        top: y + 'px',
-        borderRadius: s / 2 + 'px',
-        lineHeight: s + 'px',
-        background: hover ? '#ff0' : '#61dafb',
+        width: s + "px",
+        height: s + "px",
+        left: x + "px",
+        top: y + "px",
+        borderRadius: s / 2 + "px",
+        lineHeight: s + "px",
+        background: hover ? "#ff0" : "#61dafb",
       }}
       onMouseEnter={onEnter}
       onMouseLeave={onExit}
     >
-      {hover ? '**' + text + '**' : text}
+      {hover ? "**" + text + "**" : text}
     </div>
   );
 };

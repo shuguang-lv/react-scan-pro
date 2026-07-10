@@ -1,1 +1,1 @@
-declare module 'babel-plugin-add-react-displayname/index.js';
+declare module "babel-plugin-add-react-displayname/index.js";

@@ -1,10 +1,6 @@
 import type { IconProps } from "./types";
 
-export const IconDiscord = ({
-  width = 16,
-  height = 16,
-  className = "",
-}: IconProps) => (
+export const IconDiscord = ({ width = 16, height = 16, className = "" }: IconProps) => (
   <svg
     width={width}
     height={height}

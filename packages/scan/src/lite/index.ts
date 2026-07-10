@@ -66,11 +66,14 @@ const isValidEndpointUrl = (candidate: string): boolean => {
 
 export const instrument = (options: LiteOptions = {}): LiteHandle => {
   if (typeof window === "undefined") return noopHandle;
+  if (window.__REACT_SCAN_PRO_LITE__) return window.__REACT_SCAN_PRO_LITE__;
   if (window.__REACT_SCAN_LITE__) return window.__REACT_SCAN_LITE__;
 
   if (options.endpoint && !options.sessionId) {
     // oxlint-disable-next-line no-console
-    console.warn("[react-scan/lite] `endpoint` requires `sessionId`; events will not be POSTed.");
+    console.warn(
+      "[react-scan-pro/lite] `endpoint` requires `sessionId`; events will not be POSTed.",
+    );
   }
 
   // Validate the endpoint URL once at instrument() time and DROP it on failure
@@ -81,7 +84,7 @@ export const instrument = (options: LiteOptions = {}): LiteHandle => {
   if (effectiveEndpoint && !isValidEndpointUrl(effectiveEndpoint)) {
     // oxlint-disable-next-line no-console
     console.error(
-      "[react-scan/lite] `endpoint` is not a valid http(s) URL; events will not be POSTed.",
+      "[react-scan-pro/lite] `endpoint` is not a valid http(s) URL; events will not be POSTed.",
     );
     effectiveEndpoint = undefined;
   }
@@ -94,7 +97,7 @@ export const instrument = (options: LiteOptions = {}): LiteHandle => {
   ) {
     // oxlint-disable-next-line no-console
     console.warn(
-      "[react-scan/lite] `includeFiberTree: false` disables per-fiber enrichment options (`recordChangeDescriptions`, `includeFiberSource`, `includeFiberIdentity`). Remove `includeFiberTree: false` to enable them.",
+      "[react-scan-pro/lite] `includeFiberTree: false` disables per-fiber enrichment options (`recordChangeDescriptions`, `includeFiberSource`, `includeFiberIdentity`). Remove `includeFiberTree: false` to enable them.",
     );
   }
 
@@ -164,7 +167,7 @@ export const instrument = (options: LiteOptions = {}): LiteHandle => {
   if (includeProfilingHooks && isRealReactDevtools(hook)) {
     // oxlint-disable-next-line no-console
     console.warn(
-      "[react-scan/lite] React DevTools is also attached. Calling injectProfilingHooks replaces its profiling channel; the DevTools Timeline Profiler may stop receiving events while this instrumentation is active.",
+      "[react-scan-pro/lite] React DevTools is also attached. Calling injectProfilingHooks replaces its profiling channel; the DevTools Timeline Profiler may stop receiving events while this instrumentation is active.",
     );
   }
 
@@ -265,6 +268,9 @@ export const instrument = (options: LiteOptions = {}): LiteHandle => {
         hook.onCommitFiberUnmount = originalOnCommitFiberUnmount;
       }
       emitterControl.dispose();
+      if (window.__REACT_SCAN_PRO_LITE__ === handle) {
+        delete window.__REACT_SCAN_PRO_LITE__;
+      }
       if (window.__REACT_SCAN_LITE__ === handle) {
         delete window.__REACT_SCAN_LITE__;
       }
@@ -273,6 +279,7 @@ export const instrument = (options: LiteOptions = {}): LiteHandle => {
     subscribe: (listener) => emitter.subscribe(listener),
   };
 
+  window.__REACT_SCAN_PRO_LITE__ = handle;
   window.__REACT_SCAN_LITE__ = handle;
   return handle;
 };

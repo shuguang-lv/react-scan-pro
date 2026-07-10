@@ -2,8 +2,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "turbo run build --filter=react-scan --filter=@react-scan/extension --filter=@react-scan/vite-plugin-react-scan --filter=@react-scan/website",
-    "dev": "turbo run dev --filter=react-scan --filter=@react-scan/kitchen-sink",
+    "build": "turbo run build --filter=react-scan-pro --filter=@react-scan-pro/extension --filter=@react-scan-pro/vite-plugin --filter=@react-scan-pro/website",
+    "dev": "turbo run dev --filter=react-scan-pro --filter=@react-scan-pro/kitchen-sink",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "lint": "vp lint",
@@ -23,7 +23,7 @@
     "@types/node": "^25.6.0",
     "@voidzero-dev/vite-plus-core": "^0.1.12",
     "turbo": "^2.9.3",
-    "typescript": "latest",
+    "typescript": "^6.0.3",
     "vite-plus": "^0.1.12"
   },
   "engines": {

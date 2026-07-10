@@ -1,6 +1,6 @@
-# Contributing to React Scan
+# Contributing to React Scan Pro
 
-Thanks for your interest in contributing to React Scan! This document covers the project layout, dev setup, and the workflow for getting your change merged.
+Thanks for your interest in contributing to React Scan Pro! This document covers the project layout, dev setup, and the workflow for getting your change merged.
 
 ## Project Structure
 
@@ -8,10 +8,10 @@ This is a pnpm 10 monorepo orchestrated by [turbo](https://turbo.build) and buil
 
 ```
 packages/
-├── scan/                    # Core React Scan library + CLI
+├── scan/                    # Core React Scan Pro library + CLI
 ├── extension/               # Browser extension (Chrome / Firefox / Brave)
-├── vite-plugin-react-scan/  # Vite plugin wrapper
-└── website/                 # Marketing site (Next.js, react-scan.com)
+├── vite-plugin-react-scan-pro/  # Vite plugin wrapper
+└── website/                 # Marketing site (Next.js, react-scan-pro.com)
 
 kitchen-sink/                # Playwright target app (Vite, port 5173)
 e2e/                         # Playwright specs
@@ -28,8 +28,8 @@ docs/installation/           # Per-framework install guides
 ### Setup
 
 ```bash
-git clone https://github.com/aidenybai/react-scan.git
-cd react-scan
+git clone https://github.com/shuguang-lv/react-scan-pro.git
+cd react-scan-pro
 pnpm install
 pnpm build
 ```
@@ -37,10 +37,10 @@ pnpm build
 ### Dev workflow
 
 ```bash
-pnpm dev                                    # watches react-scan + kitchen-sink in parallel
-pnpm --filter react-scan build:copy         # build and copy IIFE to clipboard for ad-hoc testing
-pnpm --filter @react-scan/extension dev     # extension in Chrome
-pnpm --filter @react-scan/website dev       # marketing site
+pnpm dev                                    # watches react-scan-pro + kitchen-sink in parallel
+pnpm --filter react-scan-pro build:copy         # build and copy IIFE to clipboard for ad-hoc testing
+pnpm --filter @react-scan-pro/extension dev     # extension in Chrome
+pnpm --filter @react-scan-pro/website dev       # marketing site
 ```
 
 ## Code Style
@@ -98,7 +98,7 @@ Example: `fix(scan): handle null fiber in flash overlay`
 
 ## Getting Help
 
-- Check existing [issues](https://github.com/aidenybai/react-scan/issues)
+- Check existing [issues](https://github.com/shuguang-lv/react-scan-pro/issues)
 - Open a new issue with a minimal repro
 - Join our [Discord](https://discord.gg/KV3FhDq7FA)
 

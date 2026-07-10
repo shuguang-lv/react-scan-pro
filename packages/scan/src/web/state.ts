@@ -101,6 +101,9 @@ export type WidgetStates =
   | {
       view: "notifications";
       // extra params
+    }
+  | {
+      view: "reports";
     };
 // | {
 //     view: 'summary';

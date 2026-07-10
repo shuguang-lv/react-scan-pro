@@ -190,7 +190,7 @@ const trackCurrentMouseOverToolbar = () => {
       .composedPath()
       .map((path) => (path as Element).id)
       .filter(Boolean)
-      .includes("react-scan-toolbar");
+      .includes("react-scan-pro-toolbar");
   };
 
   document.addEventListener("mouseover", callback);

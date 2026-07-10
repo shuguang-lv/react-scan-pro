@@ -20,7 +20,38 @@ import type { States } from "~web/views/inspector/utils";
 import type { ChangeReason, Render, createInstrumentation } from "./instrumentation";
 import { startTimingTracking } from "./notifications/event-tracking";
 import { createHighlightCanvas } from "./notifications/outline-overlay";
+import {
+  ensureReportSession,
+  getLastReport as getStoredLastReport,
+  subscribeToReports,
+  syncReportSession,
+} from "./reporting";
+import type {
+  RawReportOptions,
+  RawScanReport,
+  ScanReportListener,
+  ScanReportOptions,
+  ScanSessionReport,
+  SummaryReportOptions,
+  SummaryScanReport,
+} from "./reporting";
+import type { ScanScope, ScanScopeCandidate } from "./scope";
 import packageJson from "../../package.json";
+
+export type {
+  RawReportOptions,
+  RawScanReport,
+  ScanReportListener,
+  ScanReportOptions,
+  ScanScope,
+  ScanScopeCandidate,
+  ScanSessionReport,
+  SummaryReportOptions,
+  SummaryScanReport,
+};
+
+const STORAGE_KEY = "react-scan-pro-options";
+const LEGACY_STORAGE_KEY = "react-scan-options";
 
 let rootContainer: HTMLDivElement | null = null;
 let shadowRoot: ShadowRoot | null = null;
@@ -36,7 +67,7 @@ const initRootContainer = (): RootContainer => {
   }
 
   rootContainer = document.createElement("div");
-  rootContainer.id = "react-scan-root";
+  rootContainer.id = "react-scan-pro-root";
 
   shadowRoot = rootContainer.attachShadow({ mode: "open" });
 
@@ -61,8 +92,12 @@ export interface Options {
    */
   enabled?: boolean;
 
+  scope?: ScanScope | Array<ScanScope>;
+
+  report?: ScanReportOptions;
+
   /**
-   * Force React Scan to run in production (not recommended)
+   * Force React Scan Pro to run in production (not recommended)
    *
    * @default false
    */
@@ -99,7 +134,7 @@ export interface Options {
    * corresponding dom subtree
    *
    *  @default false
-   *  @warning tracking unnecessary renders can add meaningful overhead to react-scan
+   *  @warning tracking unnecessary renders can add meaningful overhead to react-scan-pro
    */
   trackUnnecessaryRenders?: boolean;
 
@@ -118,7 +153,7 @@ export interface Options {
   showNotificationCount?: boolean;
 
   /**
-   * Allow React Scan to run inside iframes
+   * Allow React Scan Pro to run inside iframes
    *
    * @default false
    */
@@ -144,7 +179,7 @@ export interface Options {
   /**
    * Render outline overlays via an OffscreenCanvas + Web Worker. Disable when
    * a strict Content-Security-Policy without `worker-src blob:` would
-   * otherwise reject the blob worker — React Scan automatically falls back
+   * otherwise reject the blob worker — React Scan Pro automatically falls back
    * to main-thread rendering.
    *
    * @default true
@@ -154,7 +189,7 @@ export interface Options {
   /**
    * Should react scan log internal errors to the console.
    *
-   * Useful if react scan is not behaving expected and you want to provide information to maintainers when submitting an issue https://github.com/aidenybai/react-scan/issues
+   * Useful if react scan is not behaving expected and you want to provide information to maintainers when submitting an issue https://github.com/shuguang-lv/react-scan-pro/issues
    *
    *  @default false
    */
@@ -163,6 +198,15 @@ export interface Options {
   onCommitStart?: () => void;
   onRender?: (fiber: Fiber, renders: Array<Render>) => void;
   onCommitFinish?: () => void;
+}
+
+export interface ReactScanProGlobal {
+  (options?: Options): ReturnType<typeof scan>;
+  scan: typeof scan;
+  setOptions: typeof setOptions;
+  getOptions: typeof getOptions;
+  onReport: typeof onReport;
+  getLastReport: typeof getLastReport;
 }
 
 export interface StoreType {
@@ -244,6 +288,12 @@ export const Store: StoreType = {
   changesListeners: new Map(),
 };
 
+Store.inspectState.subscribe((state) => {
+  if (state.kind !== "focused" && Store.reportData.size > 0) {
+    Store.reportData.clear();
+  }
+});
+
 export const ReactScanInternals: Internals = {
   instrumentation: null,
   componentAllowList: null,
@@ -263,14 +313,25 @@ export const ReactScanInternals: Internals = {
   version: packageJson.version,
 };
 
-if (IS_CLIENT && window.__REACT_SCAN_EXTENSION__) {
+if (IS_CLIENT && (window.__REACT_SCAN_PRO_EXTENSION__ || window.__REACT_SCAN_EXTENSION__)) {
+  window.__REACT_SCAN_PRO_VERSION__ = ReactScanInternals.version;
   window.__REACT_SCAN_VERSION__ = ReactScanInternals.version;
 }
 
-export type LocalStorageOptions = Omit<Options, "onCommitStart" | "onRender" | "onCommitFinish">;
+export type LocalStorageOptions = Omit<
+  Options,
+  "onCommitStart" | "onRender" | "onCommitFinish" | "report" | "scope"
+>;
 
 const applyLocalStorageOptions = (options: Options): LocalStorageOptions => {
-  const { onCommitStart, onRender, onCommitFinish, ...rest } = options;
+  const {
+    onCommitStart: _onCommitStart,
+    onRender: _onRender,
+    onCommitFinish: _onCommitFinish,
+    report: _report,
+    scope: _scope,
+    ...rest
+  } = options;
   return rest;
 };
 
@@ -311,6 +372,20 @@ const validateOptions = (options: Partial<Options>): Partial<Options> => {
         }
         break;
       }
+      case "scope":
+        if (!value || (typeof value !== "object" && !Array.isArray(value))) {
+          errors.push(`- ${key} must be a scan scope or an array of scan scopes.`);
+        } else {
+          validOptions.scope = value as ScanScope | Array<ScanScope>;
+        }
+        break;
+      case "report":
+        if (!value || typeof value !== "object") {
+          errors.push(`- ${key} must be a report configuration object.`);
+        } else {
+          validOptions.report = value as ScanReportOptions;
+        }
+        break;
       case "onCommitStart":
         if (typeof value !== "function") {
           errors.push(`- ${key} must be a function. Got "${value}"`);
@@ -339,7 +414,7 @@ const validateOptions = (options: Partial<Options>): Partial<Options> => {
 
   if (errors.length > 0) {
     // oxlint-disable-next-line no-console
-    console.warn(`[React Scan] Invalid options:\n${errors.join("\n")}`);
+    console.warn(`[React Scan Pro] Invalid options:\n${errors.join("\n")}`);
   }
 
   return validOptions;
@@ -368,8 +443,9 @@ export const setOptions = (userOptions: Partial<Options>) => {
     const shouldInitToolbar =
       "showToolbar" in validOptions && validOptions.showToolbar !== undefined;
 
+    const previousOptions = ReactScanInternals.options.value;
     const newOptions = {
-      ...ReactScanInternals.options.value,
+      ...previousOptions,
       ...validOptions,
     };
 
@@ -379,33 +455,9 @@ export const setOptions = (userOptions: Partial<Options>) => {
     }
 
     ReactScanInternals.options.value = newOptions;
+    syncReportSession(previousOptions, newOptions);
 
-    // temp hack since defaults override stored local storage values
-    // we actually don't care about any other local storage option other than enabled, we should not be syncing those to local storage
-    try {
-      const existing = readLocalStorage<undefined | Record<string, unknown>>(
-        "react-scan-options",
-      )?.enabled;
-
-      if (typeof existing === "boolean") {
-        newOptions.enabled = existing;
-      }
-    } catch (e) {
-      if (ReactScanInternals.options.value._debug === "verbose") {
-        // oxlint-disable-next-line no-console
-        console.error(
-          "[React Scan Internal Error]",
-          "Failed to create notifications outline canvas",
-          e,
-        );
-      }
-      /** */
-    }
-
-    saveLocalStorage<LocalStorageOptions>(
-      "react-scan-options",
-      applyLocalStorageOptions(newOptions),
-    );
+    saveLocalStorage<LocalStorageOptions>(STORAGE_KEY, applyLocalStorageOptions(newOptions));
 
     if (shouldInitToolbar) {
       initToolbar(!!newOptions.showToolbar);
@@ -416,7 +468,7 @@ export const setOptions = (userOptions: Partial<Options>) => {
     if (ReactScanInternals.options.value._debug === "verbose") {
       // oxlint-disable-next-line no-console
       console.error(
-        "[React Scan Internal Error]",
+        "[React Scan Pro Internal Error]",
         "Failed to create notifications outline canvas",
         e,
       );
@@ -426,6 +478,15 @@ export const setOptions = (userOptions: Partial<Options>) => {
 };
 
 export const getOptions = () => ReactScanInternals.options;
+
+export const onReport = (listener: ScanReportListener) => {
+  const unsubscribe = subscribeToReports(listener);
+  ensureReportSession(ReactScanInternals.options.value);
+  if (IS_CLIENT && !ReactScanInternals.instrumentation) start();
+  return unsubscribe;
+};
+
+export const getLastReport = () => getStoredLastReport();
 
 let isProduction: boolean | null = null;
 let rdtHook: ReturnType<typeof getRDTHook>;
@@ -469,7 +530,11 @@ export const start = () => {
 
     checkReactGrabVersion();
 
-    const localStorageOptions = readLocalStorage<LocalStorageOptions>("react-scan-options");
+    let localStorageOptions = readLocalStorage<LocalStorageOptions>(STORAGE_KEY);
+    if (!localStorageOptions) {
+      localStorageOptions = readLocalStorage<LocalStorageOptions>(LEGACY_STORAGE_KEY);
+      if (localStorageOptions) saveLocalStorage(STORAGE_KEY, localStorageOptions);
+    }
 
     if (localStorageOptions) {
       const validLocalOptions = validateOptions(localStorageOptions);
@@ -492,14 +557,16 @@ export const start = () => {
       setTimeout(() => {
         if (isInstrumentationActive()) return;
         // oxlint-disable-next-line no-console
-        console.error("[React Scan] Failed to load. Must import React Scan before React runs.");
+        console.error(
+          "[React Scan Pro] Failed to load. Must import React Scan Pro before React runs.",
+        );
       }, 5000);
     }
   } catch (e) {
     if (ReactScanInternals.options.value._debug === "verbose") {
       // oxlint-disable-next-line no-console
       console.error(
-        "[React Scan Internal Error]",
+        "[React Scan Pro Internal Error]",
         "Failed to create notifications outline canvas",
         e,
       );
@@ -518,7 +585,8 @@ const initToolbar = (showToolbar: boolean) => {
     cleanupOutlineCanvas?.();
   };
 
-  const windowToolbarContainer = window.__REACT_SCAN_TOOLBAR_CONTAINER__;
+  const windowToolbarContainer =
+    window.__REACT_SCAN_PRO_TOOLBAR_CONTAINER__ ?? window.__REACT_SCAN_TOOLBAR_CONTAINER__;
 
   if (!showToolbar) {
     windowToolbarContainer?.remove();
@@ -538,7 +606,7 @@ const createNotificationsOutlineCanvas = () => {
     if (ReactScanInternals.options.value._debug === "verbose") {
       // oxlint-disable-next-line no-console
       console.error(
-        "[React Scan Internal Error]",
+        "[React Scan Pro Internal Error]",
         "Failed to create notifications outline canvas",
         e,
       );
@@ -558,7 +626,7 @@ export const scan = (options: Options = {}) => {
     return;
   }
 
-  if (options.enabled === false && options.showToolbar !== true) {
+  if (options.enabled === false && options.showToolbar !== true && !options.report) {
     return;
   }
 

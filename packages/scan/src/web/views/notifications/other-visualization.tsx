@@ -102,7 +102,7 @@ export const OtherVisualization = ({ selectedEvent }: { selectedEvent: Notificat
     if (notificationState.routeMessage?.name) {
       const container = root?.querySelector("#overview-scroll-container");
       const element = root?.querySelector(
-        `#react-scan-overview-bar-${notificationState.routeMessage.name}`,
+        `#react-scan-pro-overview-bar-${notificationState.routeMessage.name}`,
       ) as HTMLElement;
 
       if (container && element) {
@@ -137,7 +137,7 @@ export const OtherVisualization = ({ selectedEvent }: { selectedEvent: Notificat
         {timeData.map((entry) => {
           const isExpanded = expandedItems.includes(entry.kind);
           return (
-            <div key={entry.kind} id={`react-scan-overview-bar-${entry.kind}`}>
+            <div key={entry.kind} id={`react-scan-pro-overview-bar-${entry.kind}`}>
               <button
                 onClick={() =>
                   setExpandedItems((prev) =>
@@ -452,8 +452,8 @@ const Explanation = ({ input }: { input: OverviewInput }) => {
             renders
           </p>
           <p>
-            On a production React build, React Scan can't access the time it took for component to
-            render. To get that information, run React Scan on a development build
+            On a production React build, React Scan Pro can't access the time it took for component
+            to render. To get that information, run React Scan Pro on a development build
           </p>
 
           <p>

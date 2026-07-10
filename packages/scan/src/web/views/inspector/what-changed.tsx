@@ -212,7 +212,7 @@ const WhatsChangedHeader = memo(() => {
         "transition-[max-height]",
       )}
     >
-      <div className={cn("flex-1 react-scan-expandable")}>
+      <div className={cn("flex-1 react-scan-pro-expandable")}>
         <div className="overflow-hidden">
           <div className="flex items-center whitespace-nowrap">
             <div className="flex items-center gap-x-2">What changed?</div>
@@ -301,8 +301,8 @@ const Section = /* @__PURE__ */ memo(({ title, changes, renderName = identity }:
                 </div>
               </button>
               <div
-                className={cn("react-scan-expandable", {
-                  "react-scan-expanded": isEntryExpanded,
+                className={cn("react-scan-pro-expandable", {
+                  "react-scan-pro-expanded": isEntryExpanded,
                 })}
               >
                 <div className="pl-3 text-xs font-mono border-l-1 border-[#333]">
