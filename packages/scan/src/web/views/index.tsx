@@ -1,5 +1,4 @@
-import { type ReadonlySignal, computed } from "@preact/signals";
-import type { ReactNode } from "preact/compat";
+import { computed } from "@preact/signals";
 import { Store } from "~core/index";
 import { signalWidgetViews } from "~web/state";
 import { cn } from "~web/utils/helpers";
@@ -24,11 +23,9 @@ const headerClassName = computed(() =>
   ),
 );
 
-const isInspectorViewOpen = computed(() => signalWidgetViews.value.view === "inspector");
-const isNotificationsViewOpen = computed(() => signalWidgetViews.value.view === "notifications");
-const isReportsViewOpen = computed(() => signalWidgetViews.value.view === "reports");
-
 export const Content = () => {
+  const activeView = signalWidgetViews.value.view;
+
   return (
     <div
       className={cn(
@@ -57,42 +54,14 @@ export const Content = () => {
             "border-b border-[#222]",
           )}
         >
-          <ContentView isOpen={isInspectorViewOpen}>
-            <ViewInspector />
-          </ContentView>
-
-          <ContentView isOpen={isNotificationsViewOpen}>
-            <NotificationWrapper />
-          </ContentView>
-
-          <ContentView isOpen={isReportsViewOpen}>
-            <ReportsPanel />
-          </ContentView>
+          <div className="absolute inset-0 flex overflow-y-auto overflow-x-hidden">
+            {activeView === "inspector" && <ViewInspector />}
+            {activeView === "notifications" && <NotificationWrapper />}
+            {activeView === "reports" && <ReportsPanel />}
+          </div>
         </div>
       </div>
       <Toolbar />
-    </div>
-  );
-};
-
-interface ContentViewProps {
-  isOpen: ReadonlySignal<boolean>;
-  children: ReactNode;
-}
-
-const ContentView = ({ isOpen, children }: ContentViewProps) => {
-  return (
-    <div
-      className={cn(
-        "flex-1",
-        "opacity-0",
-        "overflow-y-auto overflow-x-hidden",
-        "transition-opacity delay-0",
-        "pointer-events-none",
-        isOpen.value && "opacity-100 delay-150 pointer-events-auto",
-      )}
-    >
-      <div className="absolute inset-0 flex">{children}</div>
     </div>
   );
 };

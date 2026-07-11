@@ -8,6 +8,7 @@ import {
   getType,
   isCompositeFiber,
 } from "bippy";
+import { REACT_SCAN_PRO_LOG_PREFIX } from "../logging-constants";
 import {
   Change,
   ContextChange,
@@ -347,7 +348,11 @@ const getCanvasEl = () => {
       worker = null;
       if (ReactScanInternals.options.value._debug === "verbose") {
         // oxlint-disable-next-line no-console
-        console.warn("Failed to initialize OffscreenCanvas worker:", error);
+        console.warn(
+          REACT_SCAN_PRO_LOG_PREFIX,
+          "Failed to initialize OffscreenCanvas worker:",
+          error,
+        );
       }
     }
     // The blob URL stays alive until the worker is GC'd. Revoking

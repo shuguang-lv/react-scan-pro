@@ -37,6 +37,7 @@ import type {
 } from "./reporting";
 import type { ScanScope, ScanScopeCandidate } from "./scope";
 import packageJson from "../../package.json";
+import { REACT_SCAN_PRO_LOG_PREFIX } from "../logging-constants";
 
 export type {
   RawReportOptions,
@@ -414,7 +415,7 @@ const validateOptions = (options: Partial<Options>): Partial<Options> => {
 
   if (errors.length > 0) {
     // oxlint-disable-next-line no-console
-    console.warn(`[React Scan Pro] Invalid options:\n${errors.join("\n")}`);
+    console.warn(`${REACT_SCAN_PRO_LOG_PREFIX} Invalid options:\n${errors.join("\n")}`);
   }
 
   return validOptions;
@@ -468,8 +469,8 @@ export const setOptions = (userOptions: Partial<Options>) => {
     if (ReactScanInternals.options.value._debug === "verbose") {
       // oxlint-disable-next-line no-console
       console.error(
-        "[React Scan Pro Internal Error]",
-        "Failed to create notifications outline canvas",
+        REACT_SCAN_PRO_LOG_PREFIX,
+        "Internal error: Failed to create notifications outline canvas",
         e,
       );
     }
@@ -558,7 +559,8 @@ export const start = () => {
         if (isInstrumentationActive()) return;
         // oxlint-disable-next-line no-console
         console.error(
-          "[React Scan Pro] Failed to load. Must import React Scan Pro before React runs.",
+          REACT_SCAN_PRO_LOG_PREFIX,
+          "Failed to load. Must import React Scan Pro before React runs.",
         );
       }, 5000);
     }
@@ -566,8 +568,8 @@ export const start = () => {
     if (ReactScanInternals.options.value._debug === "verbose") {
       // oxlint-disable-next-line no-console
       console.error(
-        "[React Scan Pro Internal Error]",
-        "Failed to create notifications outline canvas",
+        REACT_SCAN_PRO_LOG_PREFIX,
+        "Internal error: Failed to create notifications outline canvas",
         e,
       );
     }
@@ -606,8 +608,8 @@ const createNotificationsOutlineCanvas = () => {
     if (ReactScanInternals.options.value._debug === "verbose") {
       // oxlint-disable-next-line no-console
       console.error(
-        "[React Scan Pro Internal Error]",
-        "Failed to create notifications outline canvas",
+        REACT_SCAN_PRO_LOG_PREFIX,
+        "Internal error: Failed to create notifications outline canvas",
         e,
       );
     }

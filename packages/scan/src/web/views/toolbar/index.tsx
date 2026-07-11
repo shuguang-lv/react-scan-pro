@@ -1,10 +1,10 @@
 import { useSignalEffect } from "@preact/signals";
 import { useCallback, useEffect, useLayoutEffect, useState } from "preact/hooks";
-import { type LocalStorageOptions, ReactScanInternals, Store } from "~core/index";
+import { ReactScanInternals, setOptions, Store } from "~core/index";
 import { Icon } from "~web/components/icon";
 import { Toggle } from "~web/components/toggle";
 import { signalWidgetViews } from "~web/state";
-import { cn, readLocalStorage, saveLocalStorage } from "~web/utils/helpers";
+import { cn } from "~web/utils/helpers";
 import { constant } from "~web/utils/preact/constant";
 import { FPSMeter } from "~web/widget/fps-meter";
 import { getEventSeverity } from "../notifications/data";
@@ -80,15 +80,7 @@ export const Toolbar = constant(() => {
     if (!ReactScanInternals.instrumentation) {
       return;
     }
-    // todo: set a single source of truth
-    const isPaused = !ReactScanInternals.instrumentation.isPaused.value;
-    ReactScanInternals.instrumentation.isPaused.value = isPaused;
-    const existingLocalStorageOptions =
-      readLocalStorage<LocalStorageOptions>("react-scan-pro-options");
-    saveLocalStorage("react-scan-pro-options", {
-      ...existingLocalStorageOptions,
-      enabled: !isPaused,
-    });
+    setOptions({ enabled: ReactScanInternals.instrumentation.isPaused.value });
   }, []);
 
   useSignalEffect(() => {
@@ -149,34 +141,13 @@ export const Toolbar = constant(() => {
                 kind: "inspect-off",
               };
             }
-            switch (signalWidgetViews.value.view) {
-              case "inspector": {
-                Store.inspectState.value = {
-                  kind: "inspect-off",
-                };
-
-                const ids = new Set(events.map((event) => event.id));
-                setSeenEvents([...ids.values()]);
-                signalWidgetViews.value = {
-                  view: "notifications",
-                };
-                return;
-              }
-              case "notifications": {
-                signalWidgetViews.value = {
-                  view: "none",
-                };
-                return;
-              }
-              case "none": {
-                const ids = new Set(events.map((event) => event.id));
-                setSeenEvents([...ids.values()]);
-                signalWidgetViews.value = {
-                  view: "notifications",
-                };
-                return;
-              }
+            if (signalWidgetViews.value.view === "notifications") {
+              signalWidgetViews.value = { view: "none" };
+              return;
             }
+            const eventIds = new Set(events.map((event) => event.id));
+            setSeenEvents([...eventIds.values()]);
+            signalWidgetViews.value = { view: "notifications" };
           }}
           className="button flex items-center justify-center h-full pl-2.5 pr-2.5"
           style={{ color: inspectColor }}
@@ -202,6 +173,12 @@ export const Toolbar = constant(() => {
           onClick={() => {
             if (Store.inspectState.value.kind !== "inspect-off") {
               Store.inspectState.value = { kind: "inspect-off" };
+            }
+            if (
+              signalWidgetViews.value.view !== "reports" &&
+              !ReactScanInternals.options.value.report
+            ) {
+              setOptions({ report: { mode: "summary" } });
             }
             signalWidgetViews.value =
               signalWidgetViews.value.view === "reports" ? { view: "none" } : { view: "reports" };

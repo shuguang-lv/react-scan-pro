@@ -2,6 +2,7 @@ import browser from "webextension-polyfill";
 import { isInternalUrl } from "~utils/helpers";
 import { IconState, updateIconForTab } from "./icon";
 import { BroadcastMessage } from "~types/messages";
+import { REACT_SCAN_PRO_LOG_PREFIX } from "~utils/constants";
 
 const browserAction = browser.action || browser.browserAction;
 
@@ -17,7 +18,7 @@ const injectScripts = async (tabId: number) => {
     });
   } catch (e) {
     // oxlint-disable-next-line no-console
-    console.error("Script injection error:", e);
+    console.error(REACT_SCAN_PRO_LOG_PREFIX, "Script injection error:", e);
   }
 };
 

@@ -4,6 +4,7 @@ import {
   getRDTHook,
   isRealReactDevtools,
 } from "bippy";
+import { REACT_SCAN_PRO_LOG_PREFIX } from "../logging-constants";
 import { DEFAULT_MAX_FIBERS_PER_COMMIT, DEFAULT_MIN_FIBER_ACTUAL_DURATION_MS } from "./constants";
 import { createEmitter } from "./create-emitter";
 import { createProfilingHooks } from "./create-profiling-hooks";
@@ -72,7 +73,8 @@ export const instrument = (options: LiteOptions = {}): LiteHandle => {
   if (options.endpoint && !options.sessionId) {
     // oxlint-disable-next-line no-console
     console.warn(
-      "[react-scan-pro/lite] `endpoint` requires `sessionId`; events will not be POSTed.",
+      REACT_SCAN_PRO_LOG_PREFIX,
+      "[lite] `endpoint` requires `sessionId`; events will not be POSTed.",
     );
   }
 
@@ -84,7 +86,8 @@ export const instrument = (options: LiteOptions = {}): LiteHandle => {
   if (effectiveEndpoint && !isValidEndpointUrl(effectiveEndpoint)) {
     // oxlint-disable-next-line no-console
     console.error(
-      "[react-scan-pro/lite] `endpoint` is not a valid http(s) URL; events will not be POSTed.",
+      REACT_SCAN_PRO_LOG_PREFIX,
+      "[lite] `endpoint` is not a valid http(s) URL; events will not be POSTed.",
     );
     effectiveEndpoint = undefined;
   }
@@ -97,7 +100,8 @@ export const instrument = (options: LiteOptions = {}): LiteHandle => {
   ) {
     // oxlint-disable-next-line no-console
     console.warn(
-      "[react-scan-pro/lite] `includeFiberTree: false` disables per-fiber enrichment options (`recordChangeDescriptions`, `includeFiberSource`, `includeFiberIdentity`). Remove `includeFiberTree: false` to enable them.",
+      REACT_SCAN_PRO_LOG_PREFIX,
+      "[lite] `includeFiberTree: false` disables per-fiber enrichment options (`recordChangeDescriptions`, `includeFiberSource`, `includeFiberIdentity`). Remove `includeFiberTree: false` to enable them.",
     );
   }
 
@@ -167,7 +171,8 @@ export const instrument = (options: LiteOptions = {}): LiteHandle => {
   if (includeProfilingHooks && isRealReactDevtools(hook)) {
     // oxlint-disable-next-line no-console
     console.warn(
-      "[react-scan-pro/lite] React DevTools is also attached. Calling injectProfilingHooks replaces its profiling channel; the DevTools Timeline Profiler may stop receiving events while this instrumentation is active.",
+      REACT_SCAN_PRO_LOG_PREFIX,
+      "[lite] React DevTools is also attached. Calling injectProfilingHooks replaces its profiling channel; the DevTools Timeline Profiler may stop receiving events while this instrumentation is active.",
     );
   }
 

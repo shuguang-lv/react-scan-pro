@@ -22,6 +22,7 @@ import {
 } from "bippy";
 import { isValidElement } from "preact";
 import { isEqual } from "~core/utils";
+import { REACT_SCAN_PRO_LOG_PREFIX } from "../logging-constants";
 import {
   collectContextChanges,
   collectPropsChanges,
@@ -598,7 +599,11 @@ export const createInstrumentation = (instanceKey: string, config: Instrumentati
             } catch (error) {
               if (ReactScanInternals.options.value._debug === "verbose") {
                 // oxlint-disable-next-line no-console
-                console.error("[React Scan Pro] Failed to collect render reasons.", error);
+                console.error(
+                  REACT_SCAN_PRO_LOG_PREFIX,
+                  "Failed to collect render reasons.",
+                  error,
+                );
               }
             }
           }

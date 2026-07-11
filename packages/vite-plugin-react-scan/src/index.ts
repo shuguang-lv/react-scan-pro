@@ -30,10 +30,14 @@ interface Logger {
 
 const createLogger = (prefix: string, debug = false): Logger => {
   return {
-    debug: (...args: unknown[]) => debug && process.stdout.write(`[${prefix}] ${args.join(" ")}\n`),
-    info: (...args: unknown[]) => process.stdout.write(`[${prefix}] ${args.join(" ")}\n`),
-    warn: (...args: unknown[]) => process.stderr.write(`[${prefix}] WARN: ${args.join(" ")}\n`),
-    error: (...args: unknown[]) => process.stderr.write(`[${prefix}] ERROR: ${args.join(" ")}\n`),
+    debug: (...args: unknown[]) =>
+      debug && process.stdout.write(`${REACT_SCAN_PRO_LOG_PREFIX} [${prefix}] ${args.join(" ")}\n`),
+    info: (...args: unknown[]) =>
+      process.stdout.write(`${REACT_SCAN_PRO_LOG_PREFIX} [${prefix}] ${args.join(" ")}\n`),
+    warn: (...args: unknown[]) =>
+      process.stderr.write(`${REACT_SCAN_PRO_LOG_PREFIX} [${prefix}] WARN: ${args.join(" ")}\n`),
+    error: (...args: unknown[]) =>
+      process.stderr.write(`${REACT_SCAN_PRO_LOG_PREFIX} [${prefix}] ERROR: ${args.join(" ")}\n`),
   };
 };
 
@@ -63,6 +67,7 @@ interface ReactScanPluginOptions {
 }
 
 const PLUGIN_NAME = "vite-plugin-react-scan-pro";
+const REACT_SCAN_PRO_LOG_PREFIX = "[react-scan-pro]";
 
 const DEFAULT_SCAN_OPTIONS: Partial<Options> = {};
 
@@ -132,7 +137,7 @@ const reactScanPlugin = (options: ReactScanPluginOptions = {}): Plugin => {
         try {
           scan(${hasOptions ? JSON.stringify(options) : ""});
         } catch (error) {
-          console.error('[${PLUGIN_NAME}] Scan failed:', error);
+          console.error('${REACT_SCAN_PRO_LOG_PREFIX}', '[${PLUGIN_NAME}] Scan failed:', error);
         }
       })();
     </script>`;

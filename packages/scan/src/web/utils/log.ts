@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { ChangeReason, type Render } from "~core/instrumentation";
 import { getLabelText } from "~core/utils";
+import { REACT_SCAN_PRO_LOG_PREFIX } from "../../logging-constants";
 
 export const log = (renders: Array<Render>) => {
   const logMap = new Map<
@@ -67,10 +68,13 @@ export const log = (renders: Array<Render>) => {
   }
   for (const [name, changeLog] of Array.from(logMap.entries())) {
     // oxlint-disable-next-line no-console
-    console.group(`%c${name}`, "background: hsla(0,0%,70%,.3); border-radius:3px; padding: 0 2px;");
+    console.group(
+      `${REACT_SCAN_PRO_LOG_PREFIX} %c${name}`,
+      "background: hsla(0,0%,70%,.3); border-radius:3px; padding: 0 2px;",
+    );
     for (const { type, prev, next, unstable } of changeLog) {
       // oxlint-disable-next-line no-console
-      console.log(`${type}:`, unstable ? "⚠️" : "", prev, "!==", next);
+      console.log(REACT_SCAN_PRO_LOG_PREFIX, `${type}:`, unstable ? "⚠️" : "", prev, "!==", next);
     }
     // oxlint-disable-next-line no-console
     console.groupEnd();
@@ -84,7 +88,7 @@ export const logIntro = () => {
   }
   // oxlint-disable-next-line no-console
   console.log(
-    "%c[·] %cReact Scan Pro",
+    `${REACT_SCAN_PRO_LOG_PREFIX} %c[·] %cReact Scan Pro`,
     "font-weight:bold;color:#7a68e8;font-size:20px;",
     "font-weight:bold;font-size:14px;",
   );
