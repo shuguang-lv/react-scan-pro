@@ -42,6 +42,23 @@ test.describe("Session report panel", () => {
     expect(report.components.length).toBeGreaterThan(0);
   });
 
+  test("highlights a component DOM element on row hover", async ({ page }) => {
+    await page.evaluate(() => {
+      CanvasRenderingContext2D.prototype.rect = () => {
+        const currentCount = Number(document.documentElement.dataset.reportHighlightRectCount ?? 0);
+        document.documentElement.dataset.reportHighlightRectCount = String(currentCount + 1);
+      };
+    });
+
+    await page.getByText("ScriptReportCounter").hover();
+
+    await expect
+      .poll(() =>
+        page.evaluate(() => Number(document.documentElement.dataset.reportHighlightRectCount ?? 0)),
+      )
+      .toBeGreaterThan(0);
+  });
+
   test("exports the exact report as a JSON file", async ({ page }) => {
     const [download] = await Promise.all([
       page.waitForEvent("download"),
@@ -56,6 +73,15 @@ test.describe("Session report panel", () => {
     };
     expect(report.mode).toBe("summary");
     expect(report.metadata.observedRenderCount).toBeGreaterThan(0);
+  });
+
+  test("clears the completed report", async ({ page }) => {
+    await page.getByTestId("clear-session-report").click();
+
+    await expect(page.getByText("No completed session report")).toBeVisible();
+    await expect(page.getByTestId("copy-session-report")).toBeDisabled();
+    await expect(page.getByTestId("export-session-report")).toBeDisabled();
+    await expect(page.getByTestId("clear-session-report")).toBeDisabled();
   });
 });
 

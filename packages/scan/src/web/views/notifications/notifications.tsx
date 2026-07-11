@@ -14,7 +14,7 @@ import {
 } from "./data";
 import { DetailsRoutes } from "./details-routes";
 import { NotificationHeader } from "./notification-header";
-import { fadeOutHighlights } from "./render-bar-chart";
+import { fadeOutHighlights } from "~web/utils/fade-out-highlights";
 import { SlowdownHistory, useLaggedEvents } from "./slowdown-history";
 
 const getGroupedFiberRenders = (fiberRenders: FiberRenders) => {

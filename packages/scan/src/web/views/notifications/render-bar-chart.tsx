@@ -1,8 +1,9 @@
 import { useRef, useState } from "preact/hooks";
-import { getBatchedRectMap } from "src/new-outlines";
 import { getIsProduction } from "~core/index";
 import { iife } from "~core/notifications/performance-utils";
 import { cn } from "~web/utils/helpers";
+import { fadeOutHighlights } from "~web/utils/fade-out-highlights";
+import { highlightElements } from "~web/utils/highlight-elements";
 import {
   GroupedFiberRender,
   NotificationEvent,
@@ -10,42 +11,7 @@ import {
   isRenderMemoizable,
   useNotificationsContext,
 } from "./data";
-import { HighlightStore, drawHighlights } from "~core/notifications/outline-overlay";
 import { ChevronRight } from "./icons";
-
-// todo: cleanup, convoluted ternaries
-export const fadeOutHighlights = () => {
-  const curr = HighlightStore.value.current
-    ? HighlightStore.value.current
-    : HighlightStore.value.kind === "transition"
-      ? HighlightStore.value.transitionTo
-      : null;
-  if (!curr) {
-    return;
-  }
-
-  if (HighlightStore.value.kind === "transition") {
-    HighlightStore.value = {
-      kind: "move-out",
-      // because we want to dynamically fade this value
-      current:
-        HighlightStore.value.current?.alpha === 0
-          ? // we want to only start fading from transition if current is done animating out
-            HighlightStore.value.transitionTo
-          : // if current doesn't exist then transition must exist
-            (HighlightStore.value.current ?? HighlightStore.value.transitionTo),
-    };
-    return;
-  }
-
-  HighlightStore.value = {
-    kind: "move-out",
-    current: {
-      alpha: 0,
-      ...curr,
-    },
-  };
-};
 
 type Bars = Array<
   | { kind: "other-frame-drop"; totalTime: number }
@@ -153,19 +119,6 @@ export const RenderBarChart = ({ selectedEvent }: { selectedEvent: NotificationE
   );
 };
 
-const getTransitionState = (state: {
-  current: { alpha: number } | null;
-  transitionTo: { alpha: number };
-}) => {
-  if (!state.current) {
-    return "fading-in";
-  }
-  if (state.current.alpha > 0) {
-    return "fading-out" as const;
-  }
-  return "fading-in" as const;
-};
-
 const RenderBar = ({
   bar,
   debouncedMouseEnter,
@@ -240,104 +193,13 @@ const RenderBar = ({
             const highlightBars = async () => {
               debouncedMouseEnter.current.lastCallAt = Date.now();
               if (bar.kind !== "render") {
-                const curr = HighlightStore.value.current
-                  ? HighlightStore.value.current
-                  : HighlightStore.value.kind === "transition"
-                    ? HighlightStore.value.transitionTo
-                    : null;
-
-                if (!curr) {
-                  HighlightStore.value = {
-                    kind: "idle",
-                    current: null,
-                  };
-                  return;
-                }
-                HighlightStore.value = {
-                  kind: "move-out",
-                  current: {
-                    alpha: 0,
-                    ...curr,
-                  },
-                };
+                fadeOutHighlights();
                 return;
               }
-              const state = HighlightStore.value;
-              const currentState = iife(() => {
-                switch (state.kind) {
-                  case "transition": {
-                    return state.transitionTo;
-                  }
-                  case "idle":
-                  case "move-out": {
-                    return state.current;
-                  }
-                }
-              });
-              const stateRects: Array<DOMRect> = [];
-
-              if (state.kind === "transition") {
-                const transitionState = getTransitionState(state);
-                iife(() => {
-                  switch (transitionState) {
-                    case "fading-in": {
-                      HighlightStore.value = {
-                        kind: "transition",
-                        current: state.transitionTo,
-                        transitionTo: {
-                          rects: stateRects,
-                          alpha: 0,
-                          name: bar.event.name,
-                        },
-                      };
-                      return;
-                    }
-                    case "fading-out": {
-                      HighlightStore.value = {
-                        kind: "transition",
-                        current: HighlightStore.value.current
-                          ? {
-                              alpha: 0,
-                              ...HighlightStore.value.current,
-                            }
-                          : null,
-                        transitionTo: {
-                          rects: stateRects,
-                          alpha: 0,
-                          name: bar.event.name,
-                        },
-                      };
-                      return;
-                    }
-                  }
-                });
-              } else {
-                HighlightStore.value = {
-                  kind: "transition",
-                  transitionTo: {
-                    rects: stateRects,
-                    alpha: 0,
-                    name: bar.event.name,
-                  },
-                  current: currentState
-                    ? {
-                        alpha: 0,
-                        ...currentState,
-                      }
-                    : null,
-                };
-              }
-
-              const trueElements = bar.event.elements.filter(
-                (element) => element instanceof Element,
+              await highlightElements(
+                bar.event.name,
+                bar.event.elements.filter((element) => element instanceof Element),
               );
-
-              for await (const entries of getBatchedRectMap(trueElements)) {
-                entries.forEach(({ boundingClientRect }) => {
-                  stateRects.push(boundingClientRect);
-                });
-                drawHighlights();
-              }
             };
 
             if (

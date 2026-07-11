@@ -4,15 +4,23 @@ import {
   type RawRenderReason,
   type RawRenderRecord,
   type ScanSessionReport,
+  clearLastReport,
   getLastReport,
+  getLastReportElements,
   subscribeToReportStore,
 } from "~core/reporting";
 import { Icon } from "~web/components/icon";
 import { useVirtualList } from "~web/hooks/use-virtual-list";
 import { signalWidgetViews } from "~web/state";
+import { fadeOutHighlights } from "~web/utils/fade-out-highlights";
 import { cn } from "~web/utils/helpers";
-
-const RAW_ROW_HEIGHT = 58;
+import { highlightElements } from "~web/utils/highlight-elements";
+import { ClearIcon } from "../notifications/icons";
+import {
+  RAW_REPORT_ROW_HEIGHT_PX,
+  REPORT_COPY_STATE_DURATION_MS,
+  REPORT_LIST_OVERSCAN_COUNT,
+} from "./constants";
 
 const formatDuration = (value: number) => `${value.toFixed(value >= 10 ? 1 : 2)}ms`;
 
@@ -69,7 +77,7 @@ export const ReportsPanel = () => {
 
   useEffect(() => {
     if (copyState === "idle") return;
-    const timeout = setTimeout(() => setCopyState("idle"), 1200);
+    const timeout = setTimeout(() => setCopyState("idle"), REPORT_COPY_STATE_DURATION_MS);
     return () => clearTimeout(timeout);
   }, [copyState]);
 
@@ -109,6 +117,18 @@ export const ReportsPanel = () => {
         >
           <Icon name="icon-gallery-horizontal-end" size={12} />
           Export JSON
+        </PanelButton>
+        <PanelButton
+          testId="clear-session-report"
+          title="Clear session report"
+          disabled={!report}
+          onClick={() => {
+            fadeOutHighlights();
+            clearLastReport();
+          }}
+        >
+          <ClearIcon size={12} />
+          Clear
         </PanelButton>
         <button
           type="button"
@@ -187,7 +207,13 @@ const SummaryReportView = ({ components }: { components: Array<ComponentRenderSu
 );
 
 const SummaryRow = ({ item }: { item: ComponentRenderSummary }) => (
-  <div className="border-b border-[#202024] px-3 py-2 hover:bg-[#141416]">
+  <div
+    className="border-b border-[#202024] px-3 py-2 hover:bg-[#141416]"
+    onMouseEnter={() => {
+      void highlightElements(item.componentName, getLastReportElements(item.componentTypeId));
+    }}
+    onMouseLeave={fadeOutHighlights}
+  >
     <div className="grid grid-cols-[minmax(120px,2fr)_repeat(4,minmax(64px,1fr))] items-center text-[10px]">
       <div className="min-w-0 pr-2">
         <div className="truncate font-medium text-zinc-200">{item.componentName}</div>
@@ -222,9 +248,9 @@ const RawReportView = ({ records }: { records: Array<RawRenderRecord> }) => {
   const getScrollElement = useCallback(() => scrollRef.current, []);
   const { virtualItems, totalSize } = useVirtualList({
     count: records.length,
-    estimateSize: () => RAW_ROW_HEIGHT,
+    estimateSize: () => RAW_REPORT_ROW_HEIGHT_PX,
     getScrollElement,
-    overscan: 8,
+    overscan: REPORT_LIST_OVERSCAN_COUNT,
   });
 
   return (
@@ -249,7 +275,11 @@ const formatReasons = (reasons: Array<RawRenderReason>) =>
 const RawRow = ({ record, top }: { record: RawRenderRecord; top: number }) => (
   <div
     className="absolute left-0 right-0 border-b border-[#202024] px-3 py-1.5 text-[9px] hover:bg-[#141416]"
-    style={{ height: `${RAW_ROW_HEIGHT}px`, transform: `translateY(${top}px)` }}
+    style={{ height: `${RAW_REPORT_ROW_HEIGHT_PX}px`, transform: `translateY(${top}px)` }}
+    onMouseEnter={() => {
+      void highlightElements(record.componentName, getLastReportElements(record.sequence));
+    }}
+    onMouseLeave={fadeOutHighlights}
   >
     <div className="flex items-center gap-x-2">
       <span className="min-w-0 flex-1 truncate font-medium text-zinc-200">

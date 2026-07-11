@@ -1,4 +1,4 @@
-import { type Fiber, getFiberId, getType } from "bippy";
+import { type Fiber, getFiberId, getNearestHostFibers, getType } from "bippy";
 import { REACT_SCAN_PRO_LOG_PREFIX } from "../logging-constants";
 import type { Change, Options } from "./index";
 import { ChangeReason, type Render, RenderPhase, isValueUnstable } from "./instrumentation";
@@ -98,6 +98,7 @@ export interface RawScanReport {
 
 export type ScanSessionReport = SummaryScanReport | RawScanReport;
 export type ScanReportListener = (report: ScanSessionReport) => void;
+export type ScanReportStoreListener = (report: ScanSessionReport | null) => void;
 
 export interface SummaryReportOptions {
   mode?: "summary";
@@ -151,13 +152,33 @@ interface ReportSessionState {
   rawRecords: Array<RawRenderRecord>;
   droppedRecordCount: number;
   componentSummaries: Map<string, InternalComponentSummary>;
+  componentElements: Map<string, Set<Element>>;
+  rawRecordElements: Map<number, Array<Element>>;
+}
+
+interface ReportElementStore {
+  sessionId: string;
+  componentElements: Map<string, Array<Element>>;
+  rawRecordElements: Map<number, Array<Element>>;
 }
 
 let activeSession: ReportSessionState | null = null;
 let lastReport: ScanSessionReport | null = null;
+let lastReportElements: ReportElementStore | null = null;
 let nextSessionId = 0;
 const reportListeners = new Set<ScanReportListener>();
-const reportStoreListeners = new Set<ScanReportListener>();
+const reportStoreListeners = new Set<ScanReportStoreListener>();
+
+const notifyReportStoreListeners = (report: ScanSessionReport | null) => {
+  for (const listener of Array.from(reportStoreListeners)) {
+    try {
+      listener(report);
+    } catch (error) {
+      // oxlint-disable-next-line no-console
+      console.error(REACT_SCAN_PRO_LOG_PREFIX, "An internal report listener threw.", error);
+    }
+  }
+};
 
 const createValuePreview = (
   value: unknown,
@@ -372,6 +393,8 @@ const createSession = (options: Options): ReportSessionState => ({
   rawRecords: [],
   droppedRecordCount: 0,
   componentSummaries: new Map<string, InternalComponentSummary>(),
+  componentElements: new Map<string, Set<Element>>(),
+  rawRecordElements: new Map<number, Array<Element>>(),
 });
 
 const createMetadata = (session: ReportSessionState, endedAt: number): ScanReportMetadata => ({
@@ -510,20 +533,35 @@ const notifyReport = (report: ScanSessionReport, reportOptions: ScanReportOption
     }
   }
 
-  for (const listener of Array.from(reportStoreListeners)) {
-    try {
-      listener(report);
-    } catch (error) {
-      // oxlint-disable-next-line no-console
-      console.error(REACT_SCAN_PRO_LOG_PREFIX, "An internal report listener threw.", error);
-    }
-  }
+  notifyReportStoreListeners(report);
+};
+
+const getReportElements = (fiber: Fiber) =>
+  getNearestHostFibers(fiber)
+    .map((hostFiber) => hostFiber.stateNode)
+    .filter((element): element is Element =>
+      typeof Element === "undefined" ? false : element instanceof Element,
+    );
+
+const saveReportElements = (session: ReportSessionState) => {
+  lastReportElements = {
+    sessionId: session.sessionId,
+    componentElements: new Map(
+      Array.from(session.componentElements, ([componentTypeId, elements]) => [
+        componentTypeId,
+        Array.from(elements),
+      ]),
+    ),
+    rawRecordElements: new Map(session.rawRecordElements),
+  };
 };
 
 const releaseSessionMemory = (session: ReportSessionState, report: ScanSessionReport) => {
   session.matchedScopeRootIds.clear();
   session.primitiveComponentTypeIds.clear();
   session.componentSummaries.clear();
+  session.componentElements.clear();
+  session.rawRecordElements.clear();
   session.scope = undefined;
 
   // Raw reports intentionally retain their record array as the published result.
@@ -541,6 +579,7 @@ const finishSession = () => {
     session.reportOptions.mode === "raw"
       ? createRawReport(session, endedAt)
       : createSummaryReport(session, endedAt);
+  saveReportElements(session);
   notifyReport(report, session.reportOptions);
   releaseSessionMemory(session, report);
 };
@@ -580,6 +619,7 @@ export const recordReportRender = (fiber: Fiber, renders: Array<Render>) => {
   if (scopeMatch.rootFiberId !== null) {
     session.matchedScopeRootIds.add(scopeMatch.rootFiberId);
   }
+  const elements = getReportElements(fiber);
 
   let componentTypeId: string | undefined;
   let fiberId: number | undefined;
@@ -598,8 +638,9 @@ export const recordReportRender = (fiber: Fiber, renders: Array<Render>) => {
       const maxRecords = session.reportOptions.maxRecords ?? DEFAULT_RAW_REPORT_MAX_RECORDS;
       if (session.rawRecords.length < maxRecords) {
         const identity = getRecordIdentity();
+        const sequence = ++session.sequence;
         session.rawRecords.push({
-          sequence: ++session.sequence,
+          sequence,
           timestamp: Date.now(),
           commitIndex: session.commitIndex,
           ...identity,
@@ -611,6 +652,7 @@ export const recordReportRender = (fiber: Fiber, renders: Array<Render>) => {
           didCommit: render.didCommit,
           reasons: createRenderReasons(render),
         });
+        session.rawRecordElements.set(sequence, elements);
       } else {
         session.droppedRecordCount++;
       }
@@ -637,6 +679,12 @@ export const recordReportRender = (fiber: Fiber, renders: Array<Render>) => {
       session.componentSummaries.set(identity.componentTypeId, summary);
     }
     summary.fiberIds.add(identity.fiberId);
+    let componentElements = session.componentElements.get(identity.componentTypeId);
+    if (!componentElements) {
+      componentElements = new Set<Element>();
+      session.componentElements.set(identity.componentTypeId, componentElements);
+    }
+    for (const element of elements) componentElements.add(element);
     if (phase === "mount") summary.mountCount++;
     else if (phase === "update") summary.updateCount++;
     else summary.unmountCount++;
@@ -659,7 +707,7 @@ export const subscribeToReports = (listener: ScanReportListener) => {
 
 // Passive subscriptions are used by the toolbar UI. Unlike public onReport
 // listeners, they do not implicitly start an otherwise unconfigured session.
-export const subscribeToReportStore = (listener: ScanReportListener) => {
+export const subscribeToReportStore = (listener: ScanReportStoreListener) => {
   reportStoreListeners.add(listener);
   return () => {
     reportStoreListeners.delete(listener);
@@ -668,9 +716,23 @@ export const subscribeToReportStore = (listener: ScanReportListener) => {
 
 export const getLastReport = () => lastReport;
 
+export const getLastReportElements = (itemId: string | number) => {
+  if (!lastReport || lastReportElements?.sessionId !== lastReport.metadata.sessionId) return [];
+  return typeof itemId === "string"
+    ? (lastReportElements.componentElements.get(itemId) ?? [])
+    : (lastReportElements.rawRecordElements.get(itemId) ?? []);
+};
+
+export const clearLastReport = () => {
+  lastReport = null;
+  lastReportElements = null;
+  notifyReportStoreListeners(null);
+};
+
 export const resetReportingForTests = () => {
   activeSession = null;
   lastReport = null;
+  lastReportElements = null;
   nextSessionId = 0;
   reportListeners.clear();
   reportStoreListeners.clear();

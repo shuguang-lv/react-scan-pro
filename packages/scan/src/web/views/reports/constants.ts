@@ -1,0 +1,3 @@
+export const RAW_REPORT_ROW_HEIGHT_PX = 58;
+export const REPORT_COPY_STATE_DURATION_MS = 1200;
+export const REPORT_LIST_OVERSCAN_COUNT = 8;

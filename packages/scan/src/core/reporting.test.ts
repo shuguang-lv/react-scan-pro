@@ -4,6 +4,7 @@ import type { Options, PropsChange } from "./index";
 import { ChangeReason, type Render, RenderPhase } from "./instrumentation";
 import {
   beginReportCommit,
+  clearLastReport,
   ensureReportSession,
   getLastReport,
   isReportSessionActive,
@@ -141,6 +142,23 @@ describe("reporting", () => {
     const report = getLastReport();
     expect(report?.mode === "raw" ? report.renders : []).toHaveLength(2);
     expect(isReportSessionActive()).toBe(false);
+  });
+
+  it("clears the stored report without notifying public report listeners", () => {
+    const publicListener = vi.fn();
+    const toolbarListener = vi.fn();
+    subscribeToReports(publicListener);
+    subscribeToReportStore(toolbarListener);
+    const enabled: Options = { enabled: true, report: { mode: "summary" } };
+    ensureReportSession(enabled);
+    recordReportRender(createFiber(), [createRender(1)]);
+    syncReportSession(enabled, { enabled: false });
+
+    clearLastReport();
+
+    expect(getLastReport()).toBeNull();
+    expect(publicListener).toHaveBeenCalledOnce();
+    expect(toolbarListener).toHaveBeenLastCalledWith(null);
   });
 
   it("creates independent empty sessions and isolates callback failures", () => {
