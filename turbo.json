@@ -6,7 +6,8 @@
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
     "@react-scan-pro/website#build": {
-      "dependsOn": ["react-scan-pro#build"]
+      "dependsOn": ["react-scan-pro#build"],
+      "cache": false
     },
     "@react-scan-pro/extension#build": {
       "dependsOn": ["react-scan-pro#build"]
