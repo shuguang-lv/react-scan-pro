@@ -1,6 +1,7 @@
 import { transformAsync } from "@babel/core";
 import { createFilter } from "@rollup/pluginutils";
 import { createUnplugin } from "unplugin";
+import { REACT_SCAN_PRO_LOG_PREFIX } from "../logging-constants";
 import { reactScanComponentNamePlugin } from "./babel";
 import type { Options } from "./core/options";
 
@@ -41,7 +42,7 @@ export const transform = async (
     return null;
   } catch (error) {
     // oxlint-disable-next-line no-console
-    console.error("Error processing file:", id, error);
+    console.error(REACT_SCAN_PRO_LOG_PREFIX, "Error processing file:", id, error);
     return null;
   }
 };

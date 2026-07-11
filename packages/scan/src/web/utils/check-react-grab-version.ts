@@ -1,4 +1,5 @@
 import { version as REACT_GRAB_VERSION } from "react-grab/package.json";
+import { REACT_SCAN_PRO_LOG_PREFIX } from "../../logging-constants";
 
 let didRunVersionCheck = false;
 
@@ -31,7 +32,8 @@ export const checkReactGrabVersion = (): void => {
         if (latestVersion === REACT_GRAB_VERSION) return;
         // oxlint-disable-next-line no-console
         console.warn(
-          `[React Scan Pro] react-grab v${REACT_GRAB_VERSION} is outdated (latest: v${latestVersion}). Update react-scan-pro to pick up the newer react-grab.`,
+          REACT_SCAN_PRO_LOG_PREFIX,
+          `react-grab v${REACT_GRAB_VERSION} is outdated (latest: v${latestVersion}). Update react-scan-pro to pick up the newer react-grab.`,
         );
       })
       .catch(() => null);

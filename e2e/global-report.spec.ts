@@ -2,7 +2,7 @@ import path from "node:path";
 import { expect, test } from "@playwright/test";
 
 const autoGlobalPath = path.resolve("packages/website/public/auto.global.js");
-const fixtureUrl = "http://127.0.0.1:5173/script-report.html";
+const fixtureUrl = "http://localhost:5173/script-report.html";
 
 test.describe("Script tag report API", () => {
   test.beforeEach(async ({ page }) => {

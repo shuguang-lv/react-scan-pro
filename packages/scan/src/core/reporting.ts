@@ -1,4 +1,5 @@
 import { type Fiber, getFiberId, getType } from "bippy";
+import { REACT_SCAN_PRO_LOG_PREFIX } from "../logging-constants";
 import type { Change, Options } from "./index";
 import { ChangeReason, type Render, RenderPhase, isValueUnstable } from "./instrumentation";
 import {
@@ -497,7 +498,7 @@ const notifyReport = (report: ScanSessionReport, reportOptions: ScanReportOption
     }
   } catch (error) {
     // oxlint-disable-next-line no-console
-    console.error("[React Scan Pro] The report callback threw.", error);
+    console.error(REACT_SCAN_PRO_LOG_PREFIX, "The report callback threw.", error);
   }
 
   for (const listener of Array.from(reportListeners)) {
@@ -505,7 +506,7 @@ const notifyReport = (report: ScanSessionReport, reportOptions: ScanReportOption
       listener(report);
     } catch (error) {
       // oxlint-disable-next-line no-console
-      console.error("[React Scan Pro] A report listener threw.", error);
+      console.error(REACT_SCAN_PRO_LOG_PREFIX, "A report listener threw.", error);
     }
   }
 
@@ -514,7 +515,7 @@ const notifyReport = (report: ScanSessionReport, reportOptions: ScanReportOption
       listener(report);
     } catch (error) {
       // oxlint-disable-next-line no-console
-      console.error("[React Scan Pro] An internal report listener threw.", error);
+      console.error(REACT_SCAN_PRO_LOG_PREFIX, "An internal report listener threw.", error);
     }
   }
 };

@@ -1,4 +1,5 @@
 import { type Fiber, getDisplayName, getFiberFromHostInstance, getFiberId } from "bippy";
+import { REACT_SCAN_PRO_LOG_PREFIX } from "../logging-constants";
 
 export interface ComponentNameScanScope {
   kind: "component-name";
@@ -96,7 +97,11 @@ const scopeMatchesFiber = (scope: ScanScope, fiber: Fiber): boolean => {
         if (!warnedPredicates.has(scope.match)) {
           warnedPredicates.add(scope.match);
           // oxlint-disable-next-line no-console
-          console.warn("[React Scan Pro] A scope predicate threw and was ignored.", error);
+          console.warn(
+            REACT_SCAN_PRO_LOG_PREFIX,
+            "A scope predicate threw and was ignored.",
+            error,
+          );
         }
         return false;
       }
