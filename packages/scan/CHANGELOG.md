@@ -1,5 +1,13 @@
 # react-scan-pro
 
+## 0.1.2
+
+### Patch Changes
+
+- Restore the session report toolbar entry and direct switching between reports and notifications.
+- Highlight matching DOM elements when hovering session report rows.
+- Add an action to clear the current session report.
+
 ## 0.1.1
 
 ### Patch Changes

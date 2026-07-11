@@ -1,6 +1,6 @@
 {
   "name": "react-scan-pro",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Scan your React app for renders",
   "keywords": [
     "performance",
@@ -15,9 +15,9 @@
   },
   "license": "MIT",
   "author": {
-    "name": "Aiden Bai",
-    "email": "aiden@million.dev",
-    "url": "https://million.dev"
+    "name": "lvshuguang",
+    "email": "lvshuguang@bytedance.com",
+    "url": "https://github.com/shuguang-lv"
   },
   "repository": {
     "type": "git",
