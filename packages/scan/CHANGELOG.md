@@ -1,5 +1,11 @@
 # react-scan-pro
 
+## 0.1.1
+
+### Patch Changes
+
+- Fix Vercel deployment artifact caching for the monorepo website build.
+
 ## 0.1.0
 
 ### Minor Changes
