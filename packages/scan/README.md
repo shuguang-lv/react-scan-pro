@@ -150,6 +150,11 @@ If React DevTools is also attached, `instrument()` logs a one-time warning: the 
 <br />
 
 ```tsx
+export interface RenderLogOptions {
+  notification?: boolean;
+  report?: boolean;
+}
+
 export interface Options {
   /**
    * Enable/disable scanning
@@ -168,13 +173,14 @@ export interface Options {
    */
   dangerouslyForceRunInProduction?: boolean;
   /**
-   * Log renders to the console
+   * Log notification or session report renders to the console
    *
+   * Pass a boolean to preserve the legacy notification logging behavior.
    * WARNING: This can add significant overhead when the app re-renders frequently
    *
    * @default false
    */
-  log?: boolean;
+  log?: boolean | RenderLogOptions;
 
   /**
    * Show toolbar bar

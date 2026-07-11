@@ -36,6 +36,7 @@ import type {
   SummaryScanReport,
 } from "./reporting";
 import type { ScanScope, ScanScopeCandidate } from "./scope";
+import { isRenderLogOptions } from "./utils/is-render-log-options";
 import packageJson from "../../package.json";
 import { REACT_SCAN_PRO_LOG_PREFIX } from "../logging-constants";
 
@@ -104,13 +105,14 @@ export interface Options {
    */
   dangerouslyForceRunInProduction?: boolean;
   /**
-   * Log renders to the console
+   * Log notification or session report renders to the console
    *
+   * Pass a boolean to preserve the legacy notification logging behavior.
    * WARNING: This can add significant overhead when the app re-renders frequently
    *
    * @default false
    */
-  log?: boolean;
+  log?: boolean | RenderLogOptions;
 
   /**
    * Show toolbar bar
@@ -199,6 +201,11 @@ export interface Options {
   onCommitStart?: () => void;
   onRender?: (fiber: Fiber, renders: Array<Render>) => void;
   onCommitFinish?: () => void;
+}
+
+export interface RenderLogOptions {
+  notification?: boolean;
+  report?: boolean;
 }
 
 export interface ReactScanProGlobal {
@@ -344,7 +351,6 @@ const validateOptions = (options: Partial<Options>): Partial<Options> => {
     const value = options[key as keyof Options];
     switch (key) {
       case "enabled":
-      case "log":
       case "showToolbar":
       case "showNotificationCount":
       case "dangerouslyForceRunInProduction":
@@ -355,6 +361,20 @@ const validateOptions = (options: Partial<Options>): Partial<Options> => {
           errors.push(`- ${key} must be a boolean. Got "${value}"`);
         } else {
           validOptions[key] = value;
+        }
+        break;
+      case "log":
+        if (typeof value === "boolean") {
+          validOptions.log = value;
+        } else if (isRenderLogOptions(value)) {
+          validOptions.log = {
+            notification: value.notification,
+            report: value.report,
+          };
+        } else {
+          errors.push(
+            `- log must be a boolean or an object with boolean notification/report fields.`,
+          );
         }
         break;
       case "animationSpeed":

@@ -1,5 +1,12 @@
 # react-scan-pro
 
+## 0.1.3
+
+### Patch Changes
+
+- Improve session report component names with wrapper, React debug metadata, and owner fallbacks.
+- Add independent notification and session report console logging with namespaces.
+
 ## 0.1.2
 
 ### Patch Changes

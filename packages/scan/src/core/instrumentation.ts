@@ -23,6 +23,7 @@ import {
 import { isValidElement } from "preact";
 import { isEqual } from "~core/utils";
 import { REACT_SCAN_PRO_LOG_PREFIX } from "../logging-constants";
+import { getComponentName } from "./utils/get-component-name";
 import {
   collectContextChanges,
   collectPropsChanges,
@@ -614,7 +615,7 @@ export const createInstrumentation = (instanceKey: string, config: Instrumentati
           const parentRendered = hasRenderedParent(fiber, renderedFibers);
           const render: Render = {
             phase: RENDER_PHASE_STRING_TO_ENUM[phase],
-            componentName: getDisplayName(type),
+            componentName: getComponentName(fiber),
             count: 1,
             changes,
             time: fiberSelfTime,

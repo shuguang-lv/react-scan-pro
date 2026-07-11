@@ -11,6 +11,7 @@ import {
   REPORT_VALUE_MAX_STRING_LENGTH,
 } from "./reporting-constants";
 import { type ScanScope, getScopeMatch } from "./scope";
+import { getComponentName } from "./utils/get-component-name";
 
 export interface ReportValuePreview {
   type: string;
@@ -612,14 +613,15 @@ export const beginReportCommit = () => {
 
 export const recordReportRender = (fiber: Fiber, renders: Array<Render>) => {
   const session = activeSession;
-  if (!session) return;
+  if (!session) return false;
 
   const scopeMatch = getScopeMatch(fiber, session.scope);
-  if (!scopeMatch.isMatch) return;
+  if (!scopeMatch.isMatch) return false;
   if (scopeMatch.rootFiberId !== null) {
     session.matchedScopeRootIds.add(scopeMatch.rootFiberId);
   }
   const elements = getReportElements(fiber);
+  const componentName = getComponentName(fiber);
 
   let componentTypeId: string | undefined;
   let fiberId: number | undefined;
@@ -644,7 +646,7 @@ export const recordReportRender = (fiber: Fiber, renders: Array<Render>) => {
           timestamp: Date.now(),
           commitIndex: session.commitIndex,
           ...identity,
-          componentName: render.componentName ?? "Anonymous",
+          componentName,
           phase,
           selfTime: render.selfTime,
           totalTime: render.totalTime,
@@ -660,8 +662,6 @@ export const recordReportRender = (fiber: Fiber, renders: Array<Render>) => {
     }
 
     const identity = getRecordIdentity();
-    const componentName = render.componentName ?? "Anonymous";
-
     let summary = session.componentSummaries.get(identity.componentTypeId);
     if (!summary) {
       summary = {
@@ -696,6 +696,8 @@ export const recordReportRender = (fiber: Fiber, renders: Array<Render>) => {
     }
     recordSummaryReasons(summary, render);
   }
+
+  return true;
 };
 
 export const subscribeToReports = (listener: ScanReportListener) => {

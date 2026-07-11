@@ -32,6 +32,7 @@ import {
 } from "~core/reporting";
 import { beginScopeCommit, getScopeMatch } from "~core/scope";
 import { log, logIntro } from "~web/utils/log";
+import { isRenderLogEnabled } from "~core/utils/is-render-log-enabled";
 import { inspectorUpdateSignal } from "~web/views/inspector/states";
 import { OUTLINE_ARRAY_SIZE, drawCanvas, initCanvas, updateOutlines, updateScroll } from "./canvas";
 import type { ActiveOutline, BlueprintOutline, OutlineData } from "./types";
@@ -600,13 +601,16 @@ export const initReactScanInstrumentation = (setupToolbar: () => void) => {
       if (shouldFullyAbort) {
         return;
       }
-      recordReportRender(fiber, renders);
+      const didRecordReportRender = recordReportRender(fiber, renders);
       if (!isOverlayPaused) {
         outlineFiber(fiber);
       }
-      if (ReactScanInternals.options.value.log) {
-        // this can be expensive given enough re-renders
-        log(renders);
+      const logOptions = ReactScanInternals.options.value.log;
+      if (isRenderLogEnabled(logOptions, "notification")) {
+        log(renders, "notification");
+      }
+      if (didRecordReportRender && isRenderLogEnabled(logOptions, "report")) {
+        log(renders, "session-report");
       }
 
       if (Store.inspectState.value.kind === "focused") {

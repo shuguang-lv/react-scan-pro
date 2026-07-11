@@ -1,4 +1,4 @@
-import type { Fiber } from "bippy";
+import { type Fiber, FunctionComponentTag } from "bippy";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Options, PropsChange } from "./index";
 import { ChangeReason, type Render, RenderPhase } from "./instrumentation";
@@ -17,9 +17,10 @@ import {
 
 const Component = () => null;
 
-const createFiber = (type: () => null = Component, parent: Fiber | null = null): Fiber =>
+const createFiber = (type: unknown = Component, parent: Fiber | null = null): Fiber =>
   ({
     type,
+    tag: FunctionComponentTag,
     memoizedProps: {},
     return: parent,
     alternate: null,
@@ -29,7 +30,7 @@ const createRender = (
   selfTime: number,
   changes: Array<PropsChange> = [],
   phase = RenderPhase.Update,
-  componentName = "Component",
+  componentName: string | null = "Component",
 ): Render => ({
   phase,
   componentName,
@@ -86,6 +87,33 @@ describe("reporting", () => {
       count: 2,
     });
     expect(report.prompt).toContain("React Scan Pro");
+  });
+
+  it("resolves wrapper, debug, and owner names before falling back to Anonymous", () => {
+    const onComplete = vi.fn();
+    const enabledOptions: Options = {
+      enabled: true,
+      report: { mode: "raw", onComplete },
+    };
+    const OwnerComponent = () => null;
+    const anonymousComponent = () => null;
+    Object.defineProperty(anonymousComponent, "name", { value: "" });
+    const ownerFiber = createFiber(OwnerComponent);
+    const ownerFallbackFiber = createFiber(anonymousComponent, ownerFiber);
+    const wrapperFiber = createFiber({ displayName: "SearchInput", render: anonymousComponent });
+    const debugFiber = createFiber(anonymousComponent);
+    debugFiber._debugInfo = [{ name: "ServerResult" }];
+
+    syncReportSession({ enabled: false }, enabledOptions);
+    recordReportRender(wrapperFiber, [createRender(1, [], RenderPhase.Mount, null)]);
+    recordReportRender(debugFiber, [createRender(1, [], RenderPhase.Mount, null)]);
+    recordReportRender(ownerFallbackFiber, [createRender(1, [], RenderPhase.Mount, null)]);
+    syncReportSession(enabledOptions, { enabled: false });
+
+    const report = onComplete.mock.calls[0]?.[0];
+    expect(report.renders.map((render: { componentName: string }) => render.componentName)).toEqual(
+      ["SearchInput", "ServerResult", "Anonymous (OwnerComponent)"],
+    );
   });
 
   it("caps raw records and exposes the report through global listeners", () => {
