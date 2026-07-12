@@ -1,5 +1,13 @@
 # react-scan-pro
 
+## 0.1.6
+
+### Patch Changes
+
+- Distinguish structural ancestors from rendered components in Tree report metrics.
+- Collapse linear ancestor paths and replace full-row timing fills with compact distribution lines.
+- Clarify aggregated ancestor metrics in AI-oriented report prompts.
+
 ## 0.1.5
 
 ### Patch Changes

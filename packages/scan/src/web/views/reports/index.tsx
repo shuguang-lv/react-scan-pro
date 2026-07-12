@@ -26,6 +26,7 @@ import {
   REPORT_TREE_INDENT_PX,
   REPORT_TREE_MIN_WIDTH_PX,
 } from "./constants";
+import { getCollapsedAncestorPath } from "./utils/get-collapsed-ancestor-path";
 import { getDefaultExpandedNodeIds } from "./utils/get-default-expanded-node-ids";
 import { getMaxTreeTime } from "./utils/get-max-tree-time";
 import { serializeReport } from "./utils/serialize-report";
@@ -335,7 +336,7 @@ const TreeReportView = ({ roots, omittedTreeNodeCount }: TreeReportViewProps) =>
               <span className="truncate">{focusedNode.componentName}</span>
             </button>
           ) : (
-            <span className="truncate">Component hierarchy · width reflects subtree time</span>
+            <span className="truncate">Component hierarchy · line reflects subtree time</span>
           )}
           {omittedTreeNodeCount > 0 && (
             <span className="ml-2 text-amber-500">{omittedTreeNodeCount} omitted</span>
@@ -365,12 +366,20 @@ const TreeReportView = ({ roots, omittedTreeNodeCount }: TreeReportViewProps) =>
 };
 
 const TreeRow = ({ node, depth, maxTime, expandedNodeIds, onToggle, onFocus }: TreeRowProps) => {
-  const isExpanded = expandedNodeIds.has(node.fiberId);
-  const displayedRenderCount = node.didRender ? node.renderCount : node.subtreeRenderCount;
+  const ancestorPath = getCollapsedAncestorPath(node);
+  const displayedNode = ancestorPath.at(-1) ?? node;
+  const isAncestorPath = !node.didRender;
+  const isExpanded = expandedNodeIds.has(displayedNode.fiberId);
+  const fullPathLabel = ancestorPath.map((ancestorNode) => ancestorNode.componentName).join(" / ");
+  const firstAncestor = ancestorPath[0] ?? node;
+  const componentLabel =
+    ancestorPath.length > 2
+      ? `${firstAncestor.componentName} / ... / ${displayedNode.componentName}`
+      : fullPathLabel;
   const widthPercent = Math.max(
     REPORT_TREE_BAR_MIN_WIDTH_PERCENT,
     maxTime > 0
-      ? (node.totalTime / maxTime) * REPORT_TREE_BAR_MAX_WIDTH_PERCENT
+      ? (displayedNode.totalTime / maxTime) * REPORT_TREE_BAR_MAX_WIDTH_PERCENT
       : REPORT_TREE_BAR_MAX_WIDTH_PERCENT,
   );
 
@@ -378,33 +387,41 @@ const TreeRow = ({ node, depth, maxTime, expandedNodeIds, onToggle, onFocus }: T
     <>
       <div
         data-testid="report-tree-row"
-        data-component-name={node.componentName}
-        data-render-count={displayedRenderCount}
-        data-self-time={node.totalSelfTime}
-        data-subtree-time={node.totalTime}
+        data-component-name={displayedNode.componentName}
+        data-render-count={displayedNode.renderCount}
+        data-self-time={displayedNode.totalSelfTime}
+        data-subtree-time={displayedNode.totalTime}
         className={cn(
-          "relative flex h-9 items-center border-b border-[#202024] pr-3 text-[9px]",
-          node.didRender ? "text-zinc-200" : "text-zinc-500",
+          "relative flex h-8 items-center border-b border-[#202024] pr-3 text-[9px] hover:bg-[#17171A]",
+          isAncestorPath ? "text-zinc-500" : "text-zinc-200",
         )}
         style={{
           minWidth: `${REPORT_TREE_MIN_WIDTH_PX}px`,
           paddingLeft: `${depth * REPORT_TREE_INDENT_PX + 6}px`,
         }}
         onMouseEnter={() => {
-          void highlightElements(node.componentName, getLastReportElements(node.componentTypeId));
+          if (displayedNode.didRender) {
+            void highlightElements(
+              displayedNode.componentName,
+              getLastReportElements(displayedNode.componentTypeId),
+            );
+          }
         }}
         onMouseLeave={fadeOutHighlights}
       >
         <div
-          className="absolute bottom-1 left-0 top-1 bg-[#312e81]/40"
+          className={cn(
+            "absolute bottom-0 left-0 h-px",
+            isAncestorPath ? "bg-zinc-600/40" : "bg-emerald-400/60",
+          )}
           style={{ width: `${widthPercent}%` }}
         />
         <button
           type="button"
           title={isExpanded ? "Collapse descendants" : "Expand descendants"}
-          disabled={node.children.length === 0}
+          disabled={displayedNode.children.length === 0}
           className="relative flex size-5 items-center justify-center text-zinc-500 disabled:opacity-0"
-          onClick={() => onToggle(node.fiberId)}
+          onClick={() => onToggle(displayedNode.fiberId)}
         >
           <Icon name="icon-chevron-right" size={10} className={isExpanded ? "rotate-90" : ""} />
         </button>
@@ -412,26 +429,39 @@ const TreeRow = ({ node, depth, maxTime, expandedNodeIds, onToggle, onFocus }: T
           type="button"
           title="Focus this subtree"
           className="relative min-w-0 flex-1 truncate text-left font-medium hover:text-white"
-          onClick={() => onFocus(node)}
+          onClick={() => onFocus(displayedNode)}
         >
-          {node.componentName}
-          {!node.didRender && <span className="ml-1 text-[8px] text-zinc-600">context</span>}
+          <span title={fullPathLabel}>{componentLabel}</span>
+          {isAncestorPath && (
+            <span className="ml-1 text-[8px] font-normal text-zinc-600">
+              {ancestorPath.length === 1 ? "ancestor" : `${ancestorPath.length} ancestors`}
+            </span>
+          )}
         </button>
         <span
-          className="relative ml-2 w-16 text-right text-zinc-400"
-          title={node.didRender ? "Component renders" : "Descendant renders"}
+          className={cn(
+            "relative ml-2 w-16 text-right",
+            isAncestorPath ? "text-zinc-700" : "text-zinc-300",
+          )}
+          title={isAncestorPath ? "This ancestor did not render" : "Component renders"}
         >
-          {displayedRenderCount}
+          {isAncestorPath ? "-" : displayedNode.renderCount}
         </span>
-        <span className="relative ml-3 w-14 text-right text-zinc-500">
-          {formatDuration(node.totalSelfTime)}
+        <span
+          className={cn(
+            "relative ml-3 w-14 text-right",
+            isAncestorPath ? "text-zinc-700" : "text-zinc-500",
+          )}
+          title={isAncestorPath ? "This ancestor did not render" : undefined}
+        >
+          {isAncestorPath ? "-" : formatDuration(displayedNode.totalSelfTime)}
         </span>
         <span className="relative ml-3 w-14 text-right text-zinc-400">
-          {formatDuration(node.totalTime)}
+          {formatDuration(displayedNode.totalTime)}
         </span>
       </div>
       {isExpanded &&
-        node.children.map((childNode) => (
+        displayedNode.children.map((childNode) => (
           <TreeRow
             key={childNode.fiberId}
             node={childNode}

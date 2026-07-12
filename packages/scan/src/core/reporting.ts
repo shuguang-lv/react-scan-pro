@@ -652,7 +652,7 @@ const createSummaryReport = (session: ReportSessionState, endedAt: number): Summ
     mode: "summary",
     schemaVersion: 1,
     prompt:
-      "Analyze this React Scan Pro performance capture. All timing fields are milliseconds. Use componentTree to correlate parent-child render cascades and components for type-level hotspots. Prioritize high renderCount, totalSelfTime, averageSelfTime, and unstable prop/state/context reasons. Distinguish expensive self work from expensive descendants, account for omitted counts, and recommend specific React changes with evidence from component names, timings, and reasons.",
+      "Analyze this React Scan Pro performance capture. All timing fields are milliseconds. Use componentTree to correlate parent-child render cascades and components for type-level hotspots. Tree nodes with didRender=false are structural ancestors: renderCount and totalSelfTime are zero, while subtreeRenderCount and totalTime aggregate their rendered descendants. Prioritize high renderCount, totalSelfTime, averageSelfTime, and unstable prop/state/context reasons. Distinguish expensive self work from expensive descendants, account for omitted counts, and recommend specific React changes with evidence from component names, timings, and reasons.",
     metadata: createMetadata(session, endedAt),
     components,
     componentTree,
@@ -669,7 +669,7 @@ const createRawReport = (session: ReportSessionState, endedAt: number): RawScanR
     mode: "raw",
     schemaVersion: 1,
     prompt:
-      "Analyze this chronological React Scan Pro performance capture. All timing fields are milliseconds. Correlate commitIndex, fiberId, parentFiberId, componentTree, timings, phases, FPS, and render reasons. Identify render cascades, unstable inputs, repeated work, and expensive self versus descendant work. Account for dropped records and omitted tree nodes, then recommend specific React changes with evidence.",
+      "Analyze this chronological React Scan Pro performance capture. All timing fields are milliseconds. Correlate commitIndex, fiberId, parentFiberId, componentTree, timings, phases, FPS, and render reasons. Tree nodes with didRender=false are structural ancestors: renderCount and totalSelfTime are zero, while subtreeRenderCount and totalTime aggregate their rendered descendants. Identify render cascades, unstable inputs, repeated work, and expensive self versus descendant work. Account for dropped records and omitted tree nodes, then recommend specific React changes with evidence.",
     metadata: createMetadata(session, endedAt),
     renders: session.rawRecords,
     componentTree,
