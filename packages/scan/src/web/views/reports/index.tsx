@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import {
   type ComponentRenderSummary,
+  type ComponentTreeNode,
   type RawRenderReason,
   type RawRenderRecord,
   type ScanSessionReport,
@@ -20,18 +21,44 @@ import {
   RAW_REPORT_ROW_HEIGHT_PX,
   REPORT_COPY_STATE_DURATION_MS,
   REPORT_LIST_OVERSCAN_COUNT,
+  REPORT_TREE_BAR_MAX_WIDTH_PERCENT,
+  REPORT_TREE_BAR_MIN_WIDTH_PERCENT,
+  REPORT_TREE_INDENT_PX,
+  REPORT_TREE_MIN_WIDTH_PX,
 } from "./constants";
+import { getMaxTreeTime } from "./utils/get-max-tree-time";
+import { serializeReport } from "./utils/serialize-report";
+
+interface SummaryReportViewProps {
+  components: Array<ComponentRenderSummary>;
+  componentTree: Array<ComponentTreeNode>;
+  omittedTreeNodeCount: number;
+}
+
+interface TreeReportViewProps {
+  roots: Array<ComponentTreeNode>;
+  omittedTreeNodeCount: number;
+}
+
+interface TreeRowProps {
+  node: ComponentTreeNode;
+  depth: number;
+  maxTime: number;
+  expandedNodeIds: Set<number>;
+  onToggle: (fiberId: number) => void;
+  onFocus: (node: ComponentTreeNode) => void;
+}
+
+const REPORT_VIEW_MODES: Array<"list" | "tree"> = ["list", "tree"];
 
 const formatDuration = (value: number) => `${value.toFixed(value >= 10 ? 1 : 2)}ms`;
 
-const serializeReport = (report: ScanSessionReport) => JSON.stringify(report, null, 2);
-
 const getReportFileName = (report: ScanSessionReport) =>
-  `react-scan-pro-${report.metadata.sessionId}.json`;
+  `react-scan-pro-${report.metadata.sessionId}.toon`;
 
 const downloadReport = (report: ScanSessionReport) => {
   const url = URL.createObjectURL(
-    new Blob([serializeReport(report)], { type: "application/json;charset=utf-8" }),
+    new Blob([serializeReport(report)], { type: "text/toon;charset=utf-8" }),
   );
   const anchor = document.createElement("a");
   anchor.href = url;
@@ -60,8 +87,8 @@ const PanelButton = ({
     disabled={disabled}
     onClick={onClick}
     className={cn(
-      "flex items-center gap-x-1.5 rounded-sm border border-[#34343b]",
-      "bg-[#18181B] px-2 py-1 text-[10px] text-zinc-300",
+      "flex size-6 items-center justify-center rounded-sm border border-[#34343b]",
+      "bg-[#18181B] text-zinc-300",
       "hover:bg-[#27272A] disabled:cursor-not-allowed disabled:opacity-40",
     )}
   >
@@ -102,21 +129,34 @@ export const ReportsPanel = () => {
         </div>
         <PanelButton
           testId="copy-session-report"
-          title="Copy report JSON"
+          title={
+            copyState === "copied"
+              ? "Report copied"
+              : copyState === "error"
+                ? "Failed to copy report"
+                : "Copy report as TOON"
+          }
           disabled={!report}
           onClick={copyReport}
         >
-          <Icon name={copyState === "copied" ? "icon-check" : "icon-copy"} size={12} />
-          {copyState === "copied" ? "Copied" : copyState === "error" ? "Failed" : "Copy"}
+          <Icon
+            name={
+              copyState === "copied"
+                ? "icon-check"
+                : copyState === "error"
+                  ? "icon-triangle-alert"
+                  : "icon-copy"
+            }
+            size={12}
+          />
         </PanelButton>
         <PanelButton
           testId="export-session-report"
-          title="Export report as JSON"
+          title="Export report as TOON"
           disabled={!report}
           onClick={() => report && downloadReport(report)}
         >
           <Icon name="icon-gallery-horizontal-end" size={12} />
-          Export JSON
         </PanelButton>
         <PanelButton
           testId="clear-session-report"
@@ -128,7 +168,6 @@ export const ReportsPanel = () => {
           }}
         >
           <ClearIcon size={12} />
-          Clear
         </PanelButton>
         <button
           type="button"
@@ -162,7 +201,12 @@ const ReportContent = ({ report }: { report: ScanSessionReport }) => (
   <div className="flex min-h-0 flex-1 flex-col">
     <ReportMetadata report={report} />
     {report.mode === "summary" ? (
-      <SummaryReportView components={report.components} />
+      <SummaryReportView
+        key={report.metadata.sessionId}
+        components={report.components}
+        componentTree={report.componentTree}
+        omittedTreeNodeCount={report.omittedTreeNodeCount}
+      />
     ) : (
       <RawReportView records={report.renders} />
     )}
@@ -189,7 +233,48 @@ const ReportMetadata = ({ report }: { report: ScanSessionReport }) => {
   );
 };
 
-const SummaryReportView = ({ components }: { components: Array<ComponentRenderSummary> }) => (
+const SummaryReportView = ({
+  components,
+  componentTree,
+  omittedTreeNodeCount,
+}: SummaryReportViewProps) => {
+  const [viewMode, setViewMode] = useState<"list" | "tree">("list");
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="flex items-center justify-end border-b border-[#27272A] bg-[#111113] px-3 py-1">
+        <div className="flex rounded-sm border border-[#34343b] bg-[#18181B] p-0.5">
+          {REPORT_VIEW_MODES.map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              title={`Show ${mode} view`}
+              onClick={() => setViewMode(mode)}
+              className={cn(
+                "flex h-5 items-center gap-x-1 rounded-sm px-2 text-[9px] capitalize",
+                viewMode === mode
+                  ? "bg-[#34343b] text-zinc-100"
+                  : "text-zinc-500 hover:text-zinc-200",
+              )}
+            >
+              <Icon
+                name={mode === "tree" ? "icon-flame" : "icon-gallery-horizontal-end"}
+                size={10}
+              />
+              {mode}
+            </button>
+          ))}
+        </div>
+      </div>
+      {viewMode === "list" ? (
+        <SummaryList components={components} />
+      ) : (
+        <TreeReportView roots={componentTree} omittedTreeNodeCount={omittedTreeNodeCount} />
+      )}
+    </div>
+  );
+};
+
+const SummaryList = ({ components }: { components: Array<ComponentRenderSummary> }) => (
   <div className="min-h-0 flex-1 overflow-auto" data-testid="summary-report-list">
     <div className="sticky top-0 z-10 grid grid-cols-[minmax(120px,2fr)_repeat(4,minmax(64px,1fr))] border-b border-[#27272A] bg-[#18181B] px-3 py-1.5 text-[9px] uppercase text-zinc-500">
       <span>Component</span>
@@ -205,6 +290,146 @@ const SummaryReportView = ({ components }: { components: Array<ComponentRenderSu
     )}
   </div>
 );
+
+const TreeReportView = ({ roots, omittedTreeNodeCount }: TreeReportViewProps) => {
+  const [focusedNode, setFocusedNode] = useState<ComponentTreeNode | null>(null);
+  const [expandedNodeIds, setExpandedNodeIds] = useState<Set<number>>(
+    () => new Set(roots.map((root) => root.fiberId)),
+  );
+  const visibleRoots = focusedNode ? [focusedNode] : roots;
+  const maxTime = getMaxTreeTime(visibleRoots);
+
+  const toggleExpanded = (fiberId: number) => {
+    setExpandedNodeIds((currentIds) => {
+      const nextIds = new Set(currentIds);
+      if (nextIds.has(fiberId)) nextIds.delete(fiberId);
+      else nextIds.add(fiberId);
+      return nextIds;
+    });
+  };
+
+  const focusNode = (node: ComponentTreeNode) => {
+    setExpandedNodeIds((currentIds) => new Set([...currentIds, node.fiberId]));
+    setFocusedNode(node);
+  };
+
+  return (
+    <div className="min-h-0 flex-1 overflow-auto" data-testid="summary-report-tree">
+      <div
+        className="sticky top-0 z-10 flex h-7 items-center border-b border-[#27272A] bg-[#18181B] px-3 text-[9px] text-zinc-500"
+        style={{ minWidth: `${REPORT_TREE_MIN_WIDTH_PX}px` }}
+      >
+        <div className="flex min-w-0 flex-1 items-center">
+          {focusedNode ? (
+            <button
+              type="button"
+              title="Show full component tree"
+              className="flex min-w-0 items-center gap-x-1 text-zinc-300 hover:text-white"
+              onClick={() => setFocusedNode(null)}
+            >
+              <Icon name="icon-chevron-right" size={10} className="rotate-180" />
+              <span className="truncate">{focusedNode.componentName}</span>
+            </button>
+          ) : (
+            <span className="truncate">Component hierarchy · width reflects subtree time</span>
+          )}
+          {omittedTreeNodeCount > 0 && (
+            <span className="ml-2 text-amber-500">{omittedTreeNodeCount} omitted</span>
+          )}
+        </div>
+        <span className="w-16 text-right">Renders</span>
+        <span className="ml-3 w-14 text-right">Self</span>
+        <span className="ml-3 w-14 text-right">Subtree</span>
+      </div>
+      {visibleRoots.length === 0 ? (
+        <div className="p-6 text-center text-[10px] text-zinc-600">No renders in this session.</div>
+      ) : (
+        visibleRoots.map((node) => (
+          <TreeRow
+            key={node.fiberId}
+            node={node}
+            depth={0}
+            maxTime={maxTime}
+            expandedNodeIds={expandedNodeIds}
+            onToggle={toggleExpanded}
+            onFocus={focusNode}
+          />
+        ))
+      )}
+    </div>
+  );
+};
+
+const TreeRow = ({ node, depth, maxTime, expandedNodeIds, onToggle, onFocus }: TreeRowProps) => {
+  const isExpanded = expandedNodeIds.has(node.fiberId);
+  const widthPercent = Math.max(
+    REPORT_TREE_BAR_MIN_WIDTH_PERCENT,
+    maxTime > 0
+      ? (node.totalTime / maxTime) * REPORT_TREE_BAR_MAX_WIDTH_PERCENT
+      : REPORT_TREE_BAR_MAX_WIDTH_PERCENT,
+  );
+
+  return (
+    <>
+      <div
+        className={cn(
+          "relative flex h-9 items-center border-b border-[#202024] pr-3 text-[9px]",
+          node.didRender ? "text-zinc-200" : "text-zinc-500",
+        )}
+        style={{
+          minWidth: `${REPORT_TREE_MIN_WIDTH_PX}px`,
+          paddingLeft: `${depth * REPORT_TREE_INDENT_PX + 6}px`,
+        }}
+        onMouseEnter={() => {
+          void highlightElements(node.componentName, getLastReportElements(node.componentTypeId));
+        }}
+        onMouseLeave={fadeOutHighlights}
+      >
+        <div
+          className="absolute bottom-1 left-0 top-1 bg-[#312e81]/40"
+          style={{ width: `${widthPercent}%` }}
+        />
+        <button
+          type="button"
+          title={isExpanded ? "Collapse descendants" : "Expand descendants"}
+          disabled={node.children.length === 0}
+          className="relative flex size-5 items-center justify-center text-zinc-500 disabled:opacity-0"
+          onClick={() => onToggle(node.fiberId)}
+        >
+          <Icon name="icon-chevron-right" size={10} className={isExpanded ? "rotate-90" : ""} />
+        </button>
+        <button
+          type="button"
+          title="Focus this subtree"
+          className="relative min-w-0 flex-1 truncate text-left font-medium hover:text-white"
+          onClick={() => onFocus(node)}
+        >
+          {node.componentName}
+          {!node.didRender && <span className="ml-1 text-[8px] text-zinc-600">context</span>}
+        </button>
+        <span className="relative ml-2 w-16 text-right text-zinc-400">{node.renderCount}</span>
+        <span className="relative ml-3 w-14 text-right text-zinc-500">
+          {formatDuration(node.totalSelfTime)}
+        </span>
+        <span className="relative ml-3 w-14 text-right text-zinc-400">
+          {formatDuration(node.totalTime)}
+        </span>
+      </div>
+      {isExpanded &&
+        node.children.map((childNode) => (
+          <TreeRow
+            key={childNode.fiberId}
+            node={childNode}
+            depth={depth + 1}
+            maxTime={maxTime}
+            expandedNodeIds={expandedNodeIds}
+            onToggle={onToggle}
+            onFocus={onFocus}
+          />
+        ))}
+    </>
+  );
+};
 
 const SummaryRow = ({ item }: { item: ComponentRenderSummary }) => (
   <div

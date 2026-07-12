@@ -18,6 +18,9 @@ importers:
       '@playwright/test':
         specifier: ^1.59.1
         version: 1.59.1
+      '@toon-format/toon':
+        specifier: ^2.3.0
+        version: 2.3.0
       '@types/node':
         specifier: ^25.6.0
         version: 25.6.0
@@ -143,6 +146,9 @@ importers:
       '@rollup/pluginutils':
         specifier: ^5.3.0
         version: 5.3.0(rollup@4.44.1)
+      '@toon-format/toon':
+        specifier: ^2.3.0
+        version: 2.3.0
       bippy:
         specifier: ^0.5.39
         version: 0.5.39(react@19.0.0)
@@ -2670,6 +2676,9 @@ packages:
 
   '@tailwindcss/postcss@4.2.4':
     resolution: {integrity: sha512-wgAVj6nUWAolAu8YFvzT2cTBIElWHkjZwFYovF+xsqKsW2ADxM/X2opxj5NsF/qVccAOjRNe8X2IdPzMsWyHTg==}
+
+  '@toon-format/toon@2.3.0':
+    resolution: {integrity: sha512-/Ew9etdRQKVMnm9fDaCG0JjyAOK/O7T0M97oum1aW4W+UR8ZhVVPBanIV7oWgHBiGlnVxV9M55PWQCHofDV07w==}
 
   '@turbo/darwin-64@2.9.7':
     resolution: {integrity: sha512-wnvOWuVWJ5EUHNKxExEWiGlTeVpLG1L0PCu5MUozyC1P2SHGiWsmpW6/yAuShH91Fa2TAHOvdCRBzriZh4j4Eg==}
@@ -7088,6 +7097,8 @@ snapshots:
       '@tailwindcss/oxide': 4.2.4
       postcss: 8.5.13
       tailwindcss: 4.2.4
+
+  '@toon-format/toon@2.3.0': {}
 
   '@turbo/darwin-64@2.9.7':
     optional: true

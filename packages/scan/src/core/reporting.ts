@@ -5,6 +5,7 @@ import { ChangeReason, type Render, RenderPhase, isValueUnstable } from "./instr
 import {
   DEFAULT_RAW_REPORT_MAX_RECORDS,
   DEFAULT_REPORT_LIMIT,
+  DEFAULT_REPORT_TREE_MAX_NODES,
   REPORT_REASON_MAX_EXAMPLES,
   REPORT_VALUE_MAX_DEPTH,
   REPORT_VALUE_MAX_ENTRIES,
@@ -53,6 +54,7 @@ export interface RawRenderRecord {
   timestamp: number;
   commitIndex: number;
   fiberId: number;
+  parentFiberId: number | null;
   componentTypeId: string;
   componentName: string;
   phase: "mount" | "update" | "unmount";
@@ -61,6 +63,22 @@ export interface RawRenderRecord {
   fps: number;
   didCommit: boolean;
   reasons: Array<RawRenderReason>;
+}
+
+export interface ComponentTreeNode {
+  fiberId: number;
+  parentFiberId: number | null;
+  componentTypeId: string;
+  componentName: string;
+  didRender: boolean;
+  renderCount: number;
+  mountCount: number;
+  updateCount: number;
+  unmountCount: number;
+  totalSelfTime: number;
+  maxSelfTime: number;
+  totalTime: number;
+  children: Array<ComponentTreeNode>;
 }
 
 export interface ComponentRenderSummary {
@@ -81,17 +99,25 @@ export interface ComponentRenderSummary {
 
 export interface SummaryScanReport {
   mode: "summary";
+  schemaVersion: 1;
   metadata: ScanReportMetadata;
   components: Array<ComponentRenderSummary>;
+  componentTree: Array<ComponentTreeNode>;
   totalComponentTypeCount: number;
   omittedComponentTypeCount: number;
+  totalTreeNodeCount: number;
+  omittedTreeNodeCount: number;
   prompt: string;
 }
 
 export interface RawScanReport {
   mode: "raw";
+  schemaVersion: 1;
   metadata: ScanReportMetadata;
   renders: Array<RawRenderRecord>;
+  componentTree: Array<ComponentTreeNode>;
+  totalTreeNodeCount: number;
+  omittedTreeNodeCount: number;
   truncated: boolean;
   droppedRecordCount: number;
   prompt: string;
@@ -137,6 +163,20 @@ interface InternalComponentSummary {
   reasons: Map<string, InternalReasonSummary>;
 }
 
+interface InternalComponentTreeNode {
+  fiberId: number;
+  parentFiberId: number | null;
+  componentTypeId: string;
+  componentName: string;
+  didRender: boolean;
+  mountCount: number;
+  updateCount: number;
+  unmountCount: number;
+  totalSelfTime: number;
+  maxSelfTime: number;
+  totalTime: number;
+}
+
 interface ReportSessionState {
   sessionId: string;
   startedAt: number;
@@ -153,6 +193,9 @@ interface ReportSessionState {
   rawRecords: Array<RawRenderRecord>;
   droppedRecordCount: number;
   componentSummaries: Map<string, InternalComponentSummary>;
+  componentTreeNodes: Map<number, InternalComponentTreeNode>;
+  omittedTreeFibers: WeakSet<object>;
+  omittedTreeNodeCount: number;
   componentElements: Map<string, Set<Element>>;
   rawRecordElements: Map<number, Array<Element>>;
 }
@@ -181,7 +224,7 @@ const notifyReportStoreListeners = (report: ScanSessionReport | null) => {
   }
 };
 
-const createValuePreview = (
+export const createReportValuePreview = (
   value: unknown,
   depth = 0,
   seenValues = new WeakSet<object>(),
@@ -255,7 +298,7 @@ const createValuePreview = (
   if (Array.isArray(value)) {
     const entries = value
       .slice(0, REPORT_VALUE_MAX_ENTRIES)
-      .map((entry) => createValuePreview(entry, depth + 1, seenValues).preview);
+      .map((entry) => createReportValuePreview(entry, depth + 1, seenValues).preview);
     const truncated = value.length > REPORT_VALUE_MAX_ENTRIES;
     return {
       type: "array",
@@ -270,7 +313,7 @@ const createValuePreview = (
       .slice(0, REPORT_VALUE_MAX_ENTRIES)
       .map(
         (key) =>
-          `${key}: ${createValuePreview((value as Record<string, unknown>)[key], depth + 1, seenValues).preview}`,
+          `${key}: ${createReportValuePreview((value as Record<string, unknown>)[key], depth + 1, seenValues).preview}`,
       )
       .join(", ");
     const truncated = keys.length > REPORT_VALUE_MAX_ENTRIES;
@@ -303,8 +346,8 @@ const getReasonIdentity = (change: Change): ReasonIdentity => {
 const createReason = (change: Change): RawRenderReason => {
   return {
     ...getReasonIdentity(change),
-    previousValue: createValuePreview(change.prevValue),
-    currentValue: createValuePreview(change.value),
+    previousValue: createReportValuePreview(change.prevValue),
+    currentValue: createReportValuePreview(change.value),
   };
 };
 
@@ -394,6 +437,9 @@ const createSession = (options: Options): ReportSessionState => ({
   rawRecords: [],
   droppedRecordCount: 0,
   componentSummaries: new Map<string, InternalComponentSummary>(),
+  componentTreeNodes: new Map<number, InternalComponentTreeNode>(),
+  omittedTreeFibers: new WeakSet<object>(),
+  omittedTreeNodeCount: 0,
   componentElements: new Map<string, Set<Element>>(),
   rawRecordElements: new Map<number, Array<Element>>(),
 });
@@ -427,6 +473,88 @@ const toComponentSummary = (summary: InternalComponentSummary): ComponentRenderS
   };
 };
 
+const getParentComponentFiber = (fiber: Fiber): Fiber | null => {
+  let parentFiber = fiber.return;
+  while (parentFiber) {
+    const componentType = getType(parentFiber.type);
+    if (
+      componentType !== null &&
+      componentType !== undefined &&
+      typeof componentType !== "string"
+    ) {
+      return parentFiber;
+    }
+    parentFiber = parentFiber.return;
+  }
+  return null;
+};
+
+const ensureComponentTreeNode = (
+  session: ReportSessionState,
+  fiber: Fiber,
+): InternalComponentTreeNode | null => {
+  const fiberId = getFiberId(fiber);
+  const existingNode = session.componentTreeNodes.get(fiberId);
+  if (existingNode) return existingNode;
+
+  const parentFiber = getParentComponentFiber(fiber);
+  const parentNode = parentFiber ? ensureComponentTreeNode(session, parentFiber) : null;
+  if (session.componentTreeNodes.size >= DEFAULT_REPORT_TREE_MAX_NODES) {
+    if (!session.omittedTreeFibers.has(fiber)) {
+      session.omittedTreeFibers.add(fiber);
+      session.omittedTreeNodeCount++;
+    }
+    return null;
+  }
+
+  const node: InternalComponentTreeNode = {
+    fiberId,
+    parentFiberId: parentNode?.fiberId ?? null,
+    componentTypeId: getComponentTypeId(session, fiber),
+    componentName: getComponentName(fiber),
+    didRender: false,
+    mountCount: 0,
+    updateCount: 0,
+    unmountCount: 0,
+    totalSelfTime: 0,
+    maxSelfTime: 0,
+    totalTime: 0,
+  };
+  session.componentTreeNodes.set(fiberId, node);
+  return node;
+};
+
+const createComponentTree = (session: ReportSessionState): Array<ComponentTreeNode> => {
+  const publicNodes = new Map<number, ComponentTreeNode>();
+  for (const node of session.componentTreeNodes.values()) {
+    publicNodes.set(node.fiberId, {
+      ...node,
+      renderCount: node.mountCount + node.updateCount,
+      children: [],
+    });
+  }
+
+  const roots: Array<ComponentTreeNode> = [];
+  for (const node of publicNodes.values()) {
+    const parentNode =
+      node.parentFiberId === null ? undefined : publicNodes.get(node.parentFiberId);
+    if (parentNode) parentNode.children.push(node);
+    else roots.push(node);
+  }
+
+  const sortNodes = (nodes: Array<ComponentTreeNode>) => {
+    nodes.sort(
+      (left, right) =>
+        right.totalTime - left.totalTime ||
+        right.renderCount - left.renderCount ||
+        left.componentName.localeCompare(right.componentName),
+    );
+    for (const node of nodes) sortNodes(node.children);
+  };
+  sortNodes(roots);
+  return roots;
+};
+
 const recordSummaryReason = (
   summary: InternalComponentSummary,
   reason: ReasonIdentity,
@@ -448,8 +576,8 @@ const recordSummaryReason = (
   if (reason.unstable) reasonSummary.unstableCount++;
   if (change && reasonSummary.examples.length < REPORT_REASON_MAX_EXAMPLES) {
     reasonSummary.examples.push({
-      previousValue: createValuePreview(change.prevValue),
-      currentValue: createValuePreview(change.value),
+      previousValue: createReportValuePreview(change.prevValue),
+      currentValue: createReportValuePreview(change.value),
     });
   }
 };
@@ -468,6 +596,20 @@ const recordSummaryReasons = (summary: InternalComponentSummary, render: Render)
   ) {
     recordSummaryReason(summary, { kind: "unknown", unstable: false });
   }
+};
+
+const recordTreeNodeRender = (node: InternalComponentTreeNode, render: Render) => {
+  const phase = getPhaseName(render.phase);
+  node.didRender = true;
+  if (phase === "mount") node.mountCount++;
+  else if (phase === "update") node.updateCount++;
+  else node.unmountCount++;
+  if (phase === "unmount") return;
+
+  const selfTime = render.selfTime ?? 0;
+  node.totalSelfTime += selfTime;
+  node.maxSelfTime = Math.max(node.maxSelfTime, selfTime);
+  node.totalTime += render.totalTime ?? 0;
 };
 
 const createSummaryReport = (session: ReportSessionState, endedAt: number): SummaryScanReport => {
@@ -491,26 +633,38 @@ const createSummaryReport = (session: ReportSessionState, endedAt: number): Summ
     return left.componentTypeId.localeCompare(right.componentTypeId);
   });
   const components = allComponents.slice(0, limit);
+  const componentTree = createComponentTree(session);
   return {
     mode: "summary",
+    schemaVersion: 1,
+    prompt:
+      "Analyze this React Scan Pro performance capture. All timing fields are milliseconds. Use componentTree to correlate parent-child render cascades and components for type-level hotspots. Prioritize high renderCount, totalSelfTime, averageSelfTime, and unstable prop/state/context reasons. Distinguish expensive self work from expensive descendants, account for omitted counts, and recommend specific React changes with evidence from component names, timings, and reasons.",
     metadata: createMetadata(session, endedAt),
     components,
+    componentTree,
     totalComponentTypeCount: allComponents.length,
     omittedComponentTypeCount: Math.max(0, allComponents.length - components.length),
-    prompt:
-      "Analyze the adjacent React Scan Pro component summaries. Prioritize high renderCount and averageSelfTime values, explain repeated props/state/context/parent reasons, and recommend concrete React optimizations.",
+    totalTreeNodeCount: session.componentTreeNodes.size + session.omittedTreeNodeCount,
+    omittedTreeNodeCount: session.omittedTreeNodeCount,
   };
 };
 
-const createRawReport = (session: ReportSessionState, endedAt: number): RawScanReport => ({
-  mode: "raw",
-  metadata: createMetadata(session, endedAt),
-  renders: session.rawRecords,
-  truncated: session.droppedRecordCount > 0,
-  droppedRecordCount: session.droppedRecordCount,
-  prompt:
-    "Analyze the adjacent chronological React Scan Pro raw render records without assuming they were aggregated. Correlate commits, component instances, timings, phases, and render reasons to identify performance bottlenecks.",
-});
+const createRawReport = (session: ReportSessionState, endedAt: number): RawScanReport => {
+  const componentTree = createComponentTree(session);
+  return {
+    mode: "raw",
+    schemaVersion: 1,
+    prompt:
+      "Analyze this chronological React Scan Pro performance capture. All timing fields are milliseconds. Correlate commitIndex, fiberId, parentFiberId, componentTree, timings, phases, FPS, and render reasons. Identify render cascades, unstable inputs, repeated work, and expensive self versus descendant work. Account for dropped records and omitted tree nodes, then recommend specific React changes with evidence.",
+    metadata: createMetadata(session, endedAt),
+    renders: session.rawRecords,
+    componentTree,
+    totalTreeNodeCount: session.componentTreeNodes.size + session.omittedTreeNodeCount,
+    omittedTreeNodeCount: session.omittedTreeNodeCount,
+    truncated: session.droppedRecordCount > 0,
+    droppedRecordCount: session.droppedRecordCount,
+  };
+};
 
 const notifyReport = (report: ScanSessionReport, reportOptions: ScanReportOptions) => {
   lastReport = report;
@@ -561,6 +715,7 @@ const releaseSessionMemory = (session: ReportSessionState, report: ScanSessionRe
   session.matchedScopeRootIds.clear();
   session.primitiveComponentTypeIds.clear();
   session.componentSummaries.clear();
+  session.componentTreeNodes.clear();
   session.componentElements.clear();
   session.rawRecordElements.clear();
   session.scope = undefined;
@@ -622,6 +777,9 @@ export const recordReportRender = (fiber: Fiber, renders: Array<Render>) => {
   }
   const elements = getReportElements(fiber);
   const componentName = getComponentName(fiber);
+  const parentComponentFiber = getParentComponentFiber(fiber);
+  const treeNode = ensureComponentTreeNode(session, fiber);
+  const parentFiberId = parentComponentFiber ? getFiberId(parentComponentFiber) : null;
 
   let componentTypeId: string | undefined;
   let fiberId: number | undefined;
@@ -633,6 +791,7 @@ export const recordReportRender = (fiber: Fiber, renders: Array<Render>) => {
 
   for (const render of renders) {
     const phase = getPhaseName(render.phase);
+    if (treeNode) recordTreeNodeRender(treeNode, render);
     if (phase === "unmount") session.observedUnmountCount++;
     else session.observedRenderCount++;
 
@@ -646,6 +805,7 @@ export const recordReportRender = (fiber: Fiber, renders: Array<Render>) => {
           timestamp: Date.now(),
           commitIndex: session.commitIndex,
           ...identity,
+          parentFiberId,
           componentName,
           phase,
           selfTime: render.selfTime,

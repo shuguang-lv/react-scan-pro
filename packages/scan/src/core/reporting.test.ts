@@ -86,6 +86,17 @@ describe("reporting", () => {
       name: "value",
       count: 2,
     });
+    expect(report).toMatchObject({
+      schemaVersion: 1,
+      totalTreeNodeCount: 1,
+      omittedTreeNodeCount: 0,
+    });
+    expect(report.componentTree[0]).toMatchObject({
+      componentName: "Component",
+      renderCount: 2,
+      totalSelfTime: 6,
+      totalTime: 12,
+    });
     expect(report.prompt).toContain("React Scan Pro");
   });
 
@@ -136,6 +147,35 @@ describe("reporting", () => {
     });
     const report = getLastReport();
     expect(report?.mode === "raw" ? report.renders : []).toHaveLength(1);
+  });
+
+  it("preserves component ancestry for tree and raw analysis", () => {
+    const Parent = () => null;
+    const Child = () => null;
+    const parentFiber = createFiber(Parent);
+    const childFiber = createFiber(Child, parentFiber);
+    const onComplete = vi.fn();
+    const enabledOptions: Options = {
+      enabled: true,
+      report: { mode: "raw", onComplete },
+    };
+
+    syncReportSession({ enabled: false }, enabledOptions);
+    recordReportRender(childFiber, [createRender(3, [], RenderPhase.Update, "Child")]);
+    syncReportSession(enabledOptions, { enabled: false });
+
+    const report = onComplete.mock.calls[0]?.[0];
+    expect(report.renders[0].parentFiberId).toBe(report.componentTree[0].fiberId);
+    expect(report.componentTree[0]).toMatchObject({
+      componentName: "Parent",
+      didRender: false,
+      renderCount: 0,
+    });
+    expect(report.componentTree[0].children[0]).toMatchObject({
+      componentName: "Child",
+      didRender: true,
+      renderCount: 1,
+    });
   });
 
   it("uses summary mode for listeners without report options and supports unsubscribe", () => {
@@ -312,9 +352,7 @@ describe("reporting", () => {
 
     const report = onComplete.mock.calls[0]?.[0];
     expect(() => JSON.stringify(report)).not.toThrow();
-    expect(report.prompt).toBe(
-      "Analyze the adjacent React Scan Pro component summaries. Prioritize high renderCount and averageSelfTime values, explain repeated props/state/context/parent reasons, and recommend concrete React optimizations.",
-    );
+    expect(report.prompt).toContain("componentTree");
     expect(report.components[0].reasons).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ name: "longText" }),

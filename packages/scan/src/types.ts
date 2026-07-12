@@ -42,6 +42,7 @@ declare global {
     __REACT_SCAN_VERSION__?: string;
     __REACT_SCAN_EXTENSION__?: boolean;
     __REACT_GRAB__?: unknown;
+    hideIntro?: () => void;
     __REACT_DEVTOOLS_GLOBAL_HOOK__?: {
       checkDCE: (fn: unknown) => void;
       supportsFiber: boolean;

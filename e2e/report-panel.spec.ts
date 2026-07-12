@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
+import { decode } from "@toon-format/toon";
 import { gotoFixture, outlineToggle, TOOLBAR_SELECTORS } from "./helpers";
 
 const origin = "http://localhost:5173";
@@ -30,16 +31,29 @@ test.describe("Session report panel", () => {
     await page.locator("#react-scan-pro-reports").click();
   });
 
-  test("browses the completed summary and copies its JSON", async ({ page }) => {
+  test("browses the completed summary and copies its TOON", async ({ page }) => {
     await expect(page.getByTestId("session-reports-panel")).toBeVisible();
     await expect(page.getByTestId("summary-report-list")).toContainText("ScriptReportCounter");
 
     await page.getByTestId("copy-session-report").click();
-    await expect(page.getByTestId("copy-session-report")).toContainText("Copied");
+    await expect(page.getByTestId("copy-session-report")).toHaveAttribute("title", "Report copied");
     const clipboard = await page.evaluate(() => navigator.clipboard.readText());
-    const report = JSON.parse(clipboard) as { mode: string; components: unknown[] };
+    const report = decode(clipboard);
+    if (Array.isArray(report) || report === null || typeof report !== "object") {
+      throw new Error("Expected a TOON report object");
+    }
     expect(report.mode).toBe("summary");
+    expect(Array.isArray(report.components)).toBe(true);
+    if (!Array.isArray(report.components)) throw new Error("Expected component summaries");
     expect(report.components.length).toBeGreaterThan(0);
+  });
+
+  test("switches to the component tree and focuses a subtree", async ({ page }) => {
+    await page.getByTitle("Show tree view").click();
+
+    await expect(page.getByTestId("summary-report-tree")).toContainText("ScriptReportCounter");
+    await page.getByText("ScriptReportCounter", { exact: true }).click();
+    await expect(page.getByTitle("Show full component tree")).toBeVisible();
   });
 
   test("highlights a component DOM element on row hover", async ({ page }) => {
@@ -59,19 +73,26 @@ test.describe("Session report panel", () => {
       .toBeGreaterThan(0);
   });
 
-  test("exports the exact report as a JSON file", async ({ page }) => {
+  test("exports the exact report as a TOON file", async ({ page }) => {
     const [download] = await Promise.all([
       page.waitForEvent("download"),
       page.getByTestId("export-session-report").click(),
     ]);
-    expect(download.suggestedFilename()).toMatch(/^react-scan-pro-scan-.*\.json$/);
+    expect(download.suggestedFilename()).toMatch(/^react-scan-pro-scan-.*\.toon$/);
     const downloadPath = await download.path();
-    expect(downloadPath).not.toBeNull();
-    const report = JSON.parse(await readFile(downloadPath!, "utf8")) as {
-      mode: string;
-      metadata: { observedRenderCount: number };
-    };
+    if (!downloadPath) throw new Error("Expected a downloaded TOON report");
+    const report = decode(await readFile(downloadPath, "utf8"));
+    if (Array.isArray(report) || report === null || typeof report !== "object") {
+      throw new Error("Expected a TOON report object");
+    }
     expect(report.mode).toBe("summary");
+    if (
+      Array.isArray(report.metadata) ||
+      report.metadata === null ||
+      typeof report.metadata !== "object"
+    ) {
+      throw new Error("Expected report metadata");
+    }
     expect(report.metadata.observedRenderCount).toBeGreaterThan(0);
   });
 

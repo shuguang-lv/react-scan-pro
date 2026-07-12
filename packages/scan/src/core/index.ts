@@ -27,7 +27,10 @@ import {
   syncReportSession,
 } from "./reporting";
 import type {
+  ComponentRenderSummary,
+  ComponentTreeNode,
   RawReportOptions,
+  RawRenderRecord,
   RawScanReport,
   ScanReportListener,
   ScanReportOptions,
@@ -41,7 +44,10 @@ import packageJson from "../../package.json";
 import { REACT_SCAN_PRO_LOG_PREFIX } from "../logging-constants";
 
 export type {
+  ComponentRenderSummary,
+  ComponentTreeNode,
   RawReportOptions,
+  RawRenderRecord,
   RawScanReport,
   ScanReportListener,
   ScanReportOptions,

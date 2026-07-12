@@ -1,5 +1,13 @@
 # react-scan-pro
 
+## 0.1.4
+
+### Patch Changes
+
+- Export session reports as token-efficient TOON with AI-oriented prompts and bounded value previews.
+- Add a collapsible, focusable component hierarchy view and preserve parent Fiber IDs in Raw reports.
+- Make render logs structured, typed, bounded, and explicit about timings and render reasons.
+
 ## 0.1.3
 
 ### Patch Changes

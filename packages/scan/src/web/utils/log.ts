@@ -1,88 +1,70 @@
-// @ts-nocheck
-import { ChangeReason, type Render } from "~core/instrumentation";
-import { getLabelText } from "~core/utils";
+import type { Change } from "~core/index";
+import { ChangeReason, type Render, RenderPhase, isValueUnstable } from "~core/instrumentation";
+import { createReportValuePreview } from "~core/reporting";
 import { REACT_SCAN_PRO_LOG_PREFIX } from "../../logging-constants";
 
+interface RenderLogReason {
+  kind: "props" | "state" | "context";
+  name: string;
+  unstable: boolean;
+  previous: string;
+  current: string;
+}
+
+interface RenderLogEntry {
+  component: string;
+  phase: "mount" | "update" | "unmount";
+  renderCount: number;
+  selfTimeMs: number | null;
+  subtreeTimeMs: number | null;
+  fps: number;
+  didCommit: boolean;
+  parentRendered: boolean;
+  unnecessary: boolean | null;
+  reasons: Array<RenderLogReason>;
+}
+
+const getChangeKind = (change: Change): RenderLogReason["kind"] => {
+  if (change.type === ChangeReason.Props) return "props";
+  if (change.type === ChangeReason.Context) return "context";
+  return "state";
+};
+
+const getPhase = (render: Render): RenderLogEntry["phase"] => {
+  if (render.phase === RenderPhase.Mount) return "mount";
+  if (render.phase === RenderPhase.Unmount) return "unmount";
+  return "update";
+};
+
+const createLogEntry = (render: Render): RenderLogEntry => ({
+  component: render.componentName ?? "Anonymous",
+  phase: getPhase(render),
+  renderCount: render.count,
+  selfTimeMs: render.selfTime,
+  subtreeTimeMs: render.totalTime,
+  fps: render.fps,
+  didCommit: render.didCommit,
+  parentRendered: render.parentRendered,
+  unnecessary: render.unnecessary,
+  reasons: render.changes.map((change) => ({
+    kind: getChangeKind(change),
+    name: change.name,
+    unstable: isValueUnstable(change.prevValue, change.value),
+    previous: createReportValuePreview(change.prevValue).preview,
+    current: createReportValuePreview(change.value).preview,
+  })),
+});
+
 export const log = (renders: Array<Render>, namespace: "notification" | "session-report") => {
-  const logMap = new Map<
-    string,
-    Array<{ prev: unknown; next: unknown; type: string; unstable?: boolean }>
-  >();
-  for (let i = 0, len = renders.length; i < len; i++) {
-    const render = renders[i];
-
+  for (const render of renders) {
     if (!render.componentName) continue;
-
-    const changeLog = logMap.get(render.componentName) ?? [];
-    const labelText = getLabelText([
-      {
-        aggregatedCount: 1,
-
-        computedKey: null,
-        name: render.componentName,
-        frame: null,
-        ...render,
-        changes: {
-          // TODO(Alexis): use a faster reduction method
-          type: render.changes.reduce((set, change) => set | change.type, 0),
-          unstable: render.changes.some((change) => change.unstable),
-        },
-        phase: render.phase,
-        computedCurrent: null,
-      },
-    ]);
-    if (!labelText) continue;
-
-    let prevChangedProps: Record<string, unknown> | null = null;
-    let nextChangedProps: Record<string, unknown> | null = null;
-
-    if (render.changes) {
-      for (let i = 0, len = render.changes.length; i < len; i++) {
-        const { name, prevValue, nextValue, unstable, type } = render.changes[i];
-        if (type === ChangeReason.Props) {
-          prevChangedProps ??= {};
-          nextChangedProps ??= {};
-          prevChangedProps[`${unstable ? "⚠️" : ""}${name} (prev)`] = prevValue;
-          nextChangedProps[`${unstable ? "⚠️" : ""}${name} (next)`] = nextValue;
-        } else {
-          changeLog.push({
-            prev: prevValue,
-            next: nextValue,
-            type: type === ChangeReason.Context ? "context" : "state",
-            unstable: unstable ?? false,
-          });
-        }
-      }
-    }
-
-    if (prevChangedProps && nextChangedProps) {
-      changeLog.push({
-        prev: prevChangedProps,
-        next: nextChangedProps,
-        type: "props",
-        unstable: false,
-      });
-    }
-
-    logMap.set(labelText, changeLog);
-  }
-  for (const [name, changeLog] of Array.from(logMap.entries())) {
+    const entry = createLogEntry(render);
     // oxlint-disable-next-line no-console
-    console.group(
-      `${REACT_SCAN_PRO_LOG_PREFIX} [${namespace}] %c${name}`,
-      "background: hsla(0,0%,70%,.3); border-radius:3px; padding: 0 2px;",
+    console.groupCollapsed(
+      `${REACT_SCAN_PRO_LOG_PREFIX} [${namespace}] ${entry.component} · ${entry.phase} · ${entry.selfTimeMs ?? 0}ms self`,
     );
-    for (const { type, prev, next, unstable } of changeLog) {
-      // oxlint-disable-next-line no-console
-      console.log(
-        `${REACT_SCAN_PRO_LOG_PREFIX} [${namespace}]`,
-        `${type}:`,
-        unstable ? "⚠️" : "",
-        prev,
-        "!==",
-        next,
-      );
-    }
+    // oxlint-disable-next-line no-console
+    console.log(`${REACT_SCAN_PRO_LOG_PREFIX} [${namespace}] render-analysis`, entry);
     // oxlint-disable-next-line no-console
     console.groupEnd();
   }

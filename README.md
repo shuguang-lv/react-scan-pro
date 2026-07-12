@@ -150,6 +150,11 @@ Install the extension by following the guide [here](https://github.com/shuguang-
 <br />
 
 ```tsx
+export interface RenderLogOptions {
+  notification?: boolean;
+  report?: boolean;
+}
+
 export interface Options {
   /**
    * Enable/disable scanning
@@ -167,7 +172,7 @@ export interface Options {
    * Log renders to the console
    * @default false
    */
-  log?: boolean;
+  log?: boolean | RenderLogOptions;
 
   /**
    * Show toolbar bar
@@ -222,10 +227,15 @@ setOptions({ enabled: false });
 Use `mode: "raw"` to receive chronological per-render records. Raw mode keeps 10,000
 records by default and reports whether additional records were dropped.
 
-When the toolbar is enabled, open the **Session reports** panel after a capture completes to browse
-the same Summary or Raw object visually. The panel can copy the complete JSON to the clipboard or
-export it as a `.json` file. Raw rows are virtualized, so large captures do not create thousands of
-DOM nodes.
+When the toolbar is enabled, open the **Session reports** panel after a capture completes. Summary
+reports can switch between the sortable type-level list and a collapsible, focusable component tree.
+The tree preserves Fiber instance ancestry and distinguishes rendered nodes from non-rendering
+context ancestors. Raw records include `parentFiberId` for commit-level correlation.
+
+**Copy** and **Export TOON** encode the complete report as token-efficient
+[TOON](https://github.com/toon-format/toon). Convert an export back to JSON with
+`npx @toon-format/cli report.toon -o report.json`. Tree captures are bounded and expose omitted node
+counts; Raw rows remain virtualized so large captures do not create thousands of DOM nodes.
 
 ### Script tag API
 
@@ -242,7 +252,7 @@ DOM nodes.
     console.log(report);
     // In an iframe, set allowInIframe: true above, then forward to the host:
     window.parent.postMessage({ type: "react-scan-pro:report", report }, "*");
-    // A server-backed host can upload the same JSON-safe report with fetch().
+    // A server-backed host can upload the same serializable report with fetch().
   });
   window.reactScanPro.setOptions({ enabled: true });
   // Later: window.reactScanPro.setOptions({ enabled: false });

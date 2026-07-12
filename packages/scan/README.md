@@ -244,9 +244,16 @@ setOptions({ enabled: true });
 setOptions({ enabled: false });
 ```
 
-The toolbar includes a **Session reports** panel for the latest completed capture. It displays
-aggregated component metrics or virtualized Raw records and provides **Copy** and **Export JSON**
-actions without retaining a second in-memory copy of the report.
+The toolbar includes a **Session reports** panel for the latest completed capture. Summary reports
+can switch between aggregated component metrics and a collapsible, focusable tree that preserves
+Fiber instance ancestry. Raw records are virtualized and include `parentFiberId` for commit-level
+correlation.
+
+**Copy** and **Export TOON** use the token-efficient
+[TOON](https://github.com/toon-format/toon) format. Decode an export with
+`npx @toon-format/cli report.toon -o report.json`. The report includes an analysis prompt, explicit
+schema version, truncation metadata, bounded value previews, and a bounded component tree to help AI
+agents identify render cascades without retaining application values or an unbounded hierarchy.
 
 The script build exposes the same data through `window.reactScanPro.onReport()` and
 stores the latest result for `window.reactScanPro.getLastReport()`:
