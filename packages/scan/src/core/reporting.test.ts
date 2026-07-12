@@ -94,6 +94,7 @@ describe("reporting", () => {
     expect(report.componentTree[0]).toMatchObject({
       componentName: "Component",
       renderCount: 2,
+      subtreeRenderCount: 2,
       totalSelfTime: 6,
       totalTime: 12,
     });
@@ -170,6 +171,8 @@ describe("reporting", () => {
       componentName: "Parent",
       didRender: false,
       renderCount: 0,
+      subtreeRenderCount: 1,
+      totalTime: 6,
     });
     expect(report.componentTree[0].children[0]).toMatchObject({
       componentName: "Child",

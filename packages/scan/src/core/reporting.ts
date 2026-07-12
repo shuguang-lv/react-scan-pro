@@ -72,6 +72,7 @@ export interface ComponentTreeNode {
   componentName: string;
   didRender: boolean;
   renderCount: number;
+  subtreeRenderCount: number;
   mountCount: number;
   updateCount: number;
   unmountCount: number;
@@ -530,6 +531,7 @@ const createComponentTree = (session: ReportSessionState): Array<ComponentTreeNo
     publicNodes.set(node.fiberId, {
       ...node,
       renderCount: node.mountCount + node.updateCount,
+      subtreeRenderCount: node.mountCount + node.updateCount,
       children: [],
     });
   }
@@ -542,16 +544,28 @@ const createComponentTree = (session: ReportSessionState): Array<ComponentTreeNo
     else roots.push(node);
   }
 
-  const sortNodes = (nodes: Array<ComponentTreeNode>) => {
+  const aggregateAndSortNodes = (nodes: Array<ComponentTreeNode>) => {
+    for (const node of nodes) {
+      aggregateAndSortNodes(node.children);
+      const descendantRenderCount = node.children.reduce(
+        (totalRenderCount, childNode) => totalRenderCount + childNode.subtreeRenderCount,
+        0,
+      );
+      const descendantTime = node.children.reduce(
+        (totalTime, childNode) => totalTime + childNode.totalTime,
+        0,
+      );
+      node.subtreeRenderCount += descendantRenderCount;
+      node.totalTime = Math.max(node.totalTime, descendantTime);
+    }
     nodes.sort(
       (left, right) =>
         right.totalTime - left.totalTime ||
         right.renderCount - left.renderCount ||
         left.componentName.localeCompare(right.componentName),
     );
-    for (const node of nodes) sortNodes(node.children);
   };
-  sortNodes(roots);
+  aggregateAndSortNodes(roots);
   return roots;
 };
 

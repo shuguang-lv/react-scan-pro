@@ -1,5 +1,12 @@
 # react-scan-pro
 
+## 0.1.5
+
+### Patch Changes
+
+- Fix Tree report metrics by aggregating descendant renders and subtree time through context nodes.
+- Preserve sub-millisecond self and subtree timings instead of displaying positive values as zero.
+
 ## 0.1.4
 
 ### Patch Changes

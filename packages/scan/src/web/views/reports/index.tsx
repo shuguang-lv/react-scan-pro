@@ -26,6 +26,7 @@ import {
   REPORT_TREE_INDENT_PX,
   REPORT_TREE_MIN_WIDTH_PX,
 } from "./constants";
+import { getDefaultExpandedNodeIds } from "./utils/get-default-expanded-node-ids";
 import { getMaxTreeTime } from "./utils/get-max-tree-time";
 import { serializeReport } from "./utils/serialize-report";
 
@@ -51,7 +52,10 @@ interface TreeRowProps {
 
 const REPORT_VIEW_MODES: Array<"list" | "tree"> = ["list", "tree"];
 
-const formatDuration = (value: number) => `${value.toFixed(value >= 10 ? 1 : 2)}ms`;
+const formatDuration = (value: number) => {
+  if (value > 0 && value < 0.01) return "<0.01ms";
+  return `${value.toFixed(value >= 10 ? 1 : 2)}ms`;
+};
 
 const getReportFileName = (report: ScanSessionReport) =>
   `react-scan-pro-${report.metadata.sessionId}.toon`;
@@ -293,8 +297,8 @@ const SummaryList = ({ components }: { components: Array<ComponentRenderSummary>
 
 const TreeReportView = ({ roots, omittedTreeNodeCount }: TreeReportViewProps) => {
   const [focusedNode, setFocusedNode] = useState<ComponentTreeNode | null>(null);
-  const [expandedNodeIds, setExpandedNodeIds] = useState<Set<number>>(
-    () => new Set(roots.map((root) => root.fiberId)),
+  const [expandedNodeIds, setExpandedNodeIds] = useState<Set<number>>(() =>
+    getDefaultExpandedNodeIds(roots),
   );
   const visibleRoots = focusedNode ? [focusedNode] : roots;
   const maxTime = getMaxTreeTime(visibleRoots);
@@ -362,6 +366,7 @@ const TreeReportView = ({ roots, omittedTreeNodeCount }: TreeReportViewProps) =>
 
 const TreeRow = ({ node, depth, maxTime, expandedNodeIds, onToggle, onFocus }: TreeRowProps) => {
   const isExpanded = expandedNodeIds.has(node.fiberId);
+  const displayedRenderCount = node.didRender ? node.renderCount : node.subtreeRenderCount;
   const widthPercent = Math.max(
     REPORT_TREE_BAR_MIN_WIDTH_PERCENT,
     maxTime > 0
@@ -372,6 +377,11 @@ const TreeRow = ({ node, depth, maxTime, expandedNodeIds, onToggle, onFocus }: T
   return (
     <>
       <div
+        data-testid="report-tree-row"
+        data-component-name={node.componentName}
+        data-render-count={displayedRenderCount}
+        data-self-time={node.totalSelfTime}
+        data-subtree-time={node.totalTime}
         className={cn(
           "relative flex h-9 items-center border-b border-[#202024] pr-3 text-[9px]",
           node.didRender ? "text-zinc-200" : "text-zinc-500",
@@ -407,7 +417,12 @@ const TreeRow = ({ node, depth, maxTime, expandedNodeIds, onToggle, onFocus }: T
           {node.componentName}
           {!node.didRender && <span className="ml-1 text-[8px] text-zinc-600">context</span>}
         </button>
-        <span className="relative ml-2 w-16 text-right text-zinc-400">{node.renderCount}</span>
+        <span
+          className="relative ml-2 w-16 text-right text-zinc-400"
+          title={node.didRender ? "Component renders" : "Descendant renders"}
+        >
+          {displayedRenderCount}
+        </span>
         <span className="relative ml-3 w-14 text-right text-zinc-500">
           {formatDuration(node.totalSelfTime)}
         </span>

@@ -52,6 +52,10 @@ test.describe("Session report panel", () => {
     await page.getByTitle("Show tree view").click();
 
     await expect(page.getByTestId("summary-report-tree")).toContainText("ScriptReportCounter");
+    const renderedTreeRow = page.locator('[data-component-name="ScriptReportCounter"]');
+    await expect(renderedTreeRow).not.toHaveAttribute("data-render-count", "0");
+    await expect(renderedTreeRow).not.toHaveAttribute("data-self-time", "0");
+    await expect(renderedTreeRow).not.toHaveAttribute("data-subtree-time", "0");
     await page.getByText("ScriptReportCounter", { exact: true }).click();
     await expect(page.getByTitle("Show full component tree")).toBeVisible();
   });
