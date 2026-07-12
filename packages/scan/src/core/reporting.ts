@@ -1,4 +1,4 @@
-import { type Fiber, getFiberId, getNearestHostFibers, getType } from "bippy";
+import { type Fiber, getFiberId, getType } from "bippy";
 import { REACT_SCAN_PRO_LOG_PREFIX } from "../logging-constants";
 import type { Change, Options } from "./index";
 import { ChangeReason, type Render, RenderPhase, isValueUnstable } from "./instrumentation";
@@ -7,12 +7,16 @@ import {
   DEFAULT_REPORT_LIMIT,
   DEFAULT_REPORT_TREE_MAX_NODES,
   REPORT_REASON_MAX_EXAMPLES,
+  REPORT_HIGHLIGHT_MAX_ELEMENTS,
+  REPORT_HIGHLIGHT_MAX_ELEMENTS_PER_ITEM,
   REPORT_VALUE_MAX_DEPTH,
   REPORT_VALUE_MAX_ENTRIES,
   REPORT_VALUE_MAX_STRING_LENGTH,
 } from "./reporting-constants";
 import { type ScanScope, getScopeMatch } from "./scope";
 import { getComponentName } from "./utils/get-component-name";
+import { getNearestHostElements } from "./utils/get-nearest-host-elements";
+import { getRenderCount } from "./utils/get-render-count";
 
 export interface ReportValuePreview {
   type: string;
@@ -58,6 +62,7 @@ export interface RawRenderRecord {
   componentTypeId: string;
   componentName: string;
   phase: "mount" | "update" | "unmount";
+  renderCount: number;
   selfTime: number | null;
   totalTime: number | null;
   fps: number;
@@ -197,8 +202,9 @@ interface ReportSessionState {
   componentTreeNodes: Map<number, InternalComponentTreeNode>;
   omittedTreeFibers: WeakSet<object>;
   omittedTreeNodeCount: number;
-  componentElements: Map<string, Set<Element>>;
+  componentElements: Map<string, Map<number, Array<Element>>>;
   rawRecordElements: Map<number, Array<Element>>;
+  highlightElementCount: number;
 }
 
 interface ReportElementStore {
@@ -288,27 +294,27 @@ export const createReportValuePreview = (
   } catch {
     return { type: "object", preview: "[Unserializable]", truncated: true };
   }
+  if (depth >= REPORT_VALUE_MAX_DEPTH) {
+    return { type: "object", preview: "[…]", truncated: true };
+  }
   if (seenValues.has(value)) {
     return { type: "object", preview: "[Circular]", truncated: true };
   }
   seenValues.add(value);
-  if (depth >= REPORT_VALUE_MAX_DEPTH) {
-    return { type: "object", preview: "[…]", truncated: true };
-  }
-
-  if (Array.isArray(value)) {
-    const entries = value
-      .slice(0, REPORT_VALUE_MAX_ENTRIES)
-      .map((entry) => createReportValuePreview(entry, depth + 1, seenValues).preview);
-    const truncated = value.length > REPORT_VALUE_MAX_ENTRIES;
-    return {
-      type: "array",
-      preview: `[${entries.join(", ")}${truncated ? ", …" : ""}]`,
-      truncated,
-    };
-  }
 
   try {
+    if (Array.isArray(value)) {
+      const entries = value
+        .slice(0, REPORT_VALUE_MAX_ENTRIES)
+        .map((entry) => createReportValuePreview(entry, depth + 1, seenValues).preview);
+      const truncated = value.length > REPORT_VALUE_MAX_ENTRIES;
+      return {
+        type: "array",
+        preview: `[${entries.join(", ")}${truncated ? ", …" : ""}]`,
+        truncated,
+      };
+    }
+
     const keys = Object.keys(value);
     const preview = keys
       .slice(0, REPORT_VALUE_MAX_ENTRIES)
@@ -325,6 +331,8 @@ export const createReportValuePreview = (
     };
   } catch {
     return { type: "object", preview: "[Unserializable]", truncated: true };
+  } finally {
+    seenValues.delete(value);
   }
 };
 
@@ -441,8 +449,9 @@ const createSession = (options: Options): ReportSessionState => ({
   componentTreeNodes: new Map<number, InternalComponentTreeNode>(),
   omittedTreeFibers: new WeakSet<object>(),
   omittedTreeNodeCount: 0,
-  componentElements: new Map<string, Set<Element>>(),
+  componentElements: new Map<string, Map<number, Array<Element>>>(),
   rawRecordElements: new Map<number, Array<Element>>(),
+  highlightElementCount: 0,
 });
 
 const createMetadata = (session: ReportSessionState, endedAt: number): ScanReportMetadata => ({
@@ -572,6 +581,7 @@ const createComponentTree = (session: ReportSessionState): Array<ComponentTreeNo
 const recordSummaryReason = (
   summary: InternalComponentSummary,
   reason: ReasonIdentity,
+  renderCount: number,
   change?: Change,
 ) => {
   const reasonKey = `${reason.kind}:${reason.name ?? ""}`;
@@ -586,8 +596,8 @@ const recordSummaryReason = (
     };
     summary.reasons.set(reasonKey, reasonSummary);
   }
-  reasonSummary.count++;
-  if (reason.unstable) reasonSummary.unstableCount++;
+  reasonSummary.count += renderCount;
+  if (reason.unstable) reasonSummary.unstableCount += renderCount;
   if (change && reasonSummary.examples.length < REPORT_REASON_MAX_EXAMPLES) {
     reasonSummary.examples.push({
       previousValue: createReportValuePreview(change.prevValue),
@@ -596,28 +606,36 @@ const recordSummaryReason = (
   }
 };
 
-const recordSummaryReasons = (summary: InternalComponentSummary, render: Render) => {
+const recordSummaryReasons = (
+  summary: InternalComponentSummary,
+  render: Render,
+  renderCount: number,
+) => {
   for (const change of render.changes) {
-    recordSummaryReason(summary, getReasonIdentity(change), change);
+    recordSummaryReason(summary, getReasonIdentity(change), renderCount, change);
   }
   if (render.parentRendered) {
-    recordSummaryReason(summary, { kind: "parent", unstable: false });
+    recordSummaryReason(summary, { kind: "parent", unstable: false }, renderCount);
   }
   if (
     render.phase === RenderPhase.Update &&
     render.changes.length === 0 &&
     !render.parentRendered
   ) {
-    recordSummaryReason(summary, { kind: "unknown", unstable: false });
+    recordSummaryReason(summary, { kind: "unknown", unstable: false }, renderCount);
   }
 };
 
-const recordTreeNodeRender = (node: InternalComponentTreeNode, render: Render) => {
+const recordTreeNodeRender = (
+  node: InternalComponentTreeNode,
+  render: Render,
+  renderCount: number,
+) => {
   const phase = getPhaseName(render.phase);
   node.didRender = true;
-  if (phase === "mount") node.mountCount++;
-  else if (phase === "update") node.updateCount++;
-  else node.unmountCount++;
+  if (phase === "mount") node.mountCount += renderCount;
+  else if (phase === "update") node.updateCount += renderCount;
+  else node.unmountCount += renderCount;
   if (phase === "unmount") return;
 
   const selfTime = render.selfTime ?? 0;
@@ -652,7 +670,7 @@ const createSummaryReport = (session: ReportSessionState, endedAt: number): Summ
     mode: "summary",
     schemaVersion: 1,
     prompt:
-      "Analyze this React Scan Pro performance capture. All timing fields are milliseconds. Use componentTree to correlate parent-child render cascades and components for type-level hotspots. Tree nodes with didRender=false are structural ancestors: renderCount and totalSelfTime are zero, while subtreeRenderCount and totalTime aggregate their rendered descendants. Prioritize high renderCount, totalSelfTime, averageSelfTime, and unstable prop/state/context reasons. Distinguish expensive self work from expensive descendants, account for omitted counts, and recommend specific React changes with evidence from component names, timings, and reasons.",
+      "Analyze this React Scan Pro performance capture. All timing fields are milliseconds. components contains type-level aggregates across instances; componentTree contains instance-level hierarchy. In tree nodes, renderCount and totalSelfTime are own-instance metrics, while subtreeRenderCount and totalTime describe branch activity. Nodes with didRender=false are structural ancestors, so their own metrics are zero. Prioritize high renderCount, totalSelfTime, averageSelfTime, and unstable prop/state/context reasons. Distinguish expensive self work from expensive descendants, account for omitted counts, and recommend specific React changes with evidence from component names, timings, and reasons.",
     metadata: createMetadata(session, endedAt),
     components,
     componentTree,
@@ -669,7 +687,7 @@ const createRawReport = (session: ReportSessionState, endedAt: number): RawScanR
     mode: "raw",
     schemaVersion: 1,
     prompt:
-      "Analyze this chronological React Scan Pro performance capture. All timing fields are milliseconds. Correlate commitIndex, fiberId, parentFiberId, componentTree, timings, phases, FPS, and render reasons. Tree nodes with didRender=false are structural ancestors: renderCount and totalSelfTime are zero, while subtreeRenderCount and totalTime aggregate their rendered descendants. Identify render cascades, unstable inputs, repeated work, and expensive self versus descendant work. Account for dropped records and omitted tree nodes, then recommend specific React changes with evidence.",
+      "Analyze this chronological React Scan Pro performance capture. All timing fields are milliseconds. Each render record can represent renderCount renders. Correlate commitIndex, fiberId, parentFiberId, componentTree, timings, phases, FPS, and render reasons. In tree nodes, renderCount and totalSelfTime are own-instance metrics, while subtreeRenderCount and totalTime describe branch activity. Nodes with didRender=false are structural ancestors, so their own metrics are zero. Identify render cascades, unstable inputs, repeated work, and expensive self versus descendant work. Account for dropped records and omitted tree nodes, then recommend specific React changes with evidence.",
     metadata: createMetadata(session, endedAt),
     renders: session.rawRecords,
     componentTree,
@@ -705,23 +723,66 @@ const notifyReport = (report: ScanSessionReport, reportOptions: ScanReportOption
   notifyReportStoreListeners(report);
 };
 
-const getReportElements = (fiber: Fiber) =>
-  getNearestHostFibers(fiber)
-    .map((hostFiber) => hostFiber.stateNode)
-    .filter((element): element is Element =>
-      typeof Element === "undefined" ? false : element instanceof Element,
-    );
+const collectReportElements = (session: ReportSessionState, fiber: Fiber) => {
+  const remainingElementCount = REPORT_HIGHLIGHT_MAX_ELEMENTS - session.highlightElementCount;
+  if (remainingElementCount <= 0 || typeof Element === "undefined") return [];
+
+  const maxElementCount = Math.min(remainingElementCount, REPORT_HIGHLIGHT_MAX_ELEMENTS_PER_ITEM);
+  const elements = getNearestHostElements(fiber, maxElementCount);
+  session.highlightElementCount += elements.length;
+  return elements;
+};
+
+const updateComponentElements = (
+  session: ReportSessionState,
+  componentTypeId: string,
+  fiberId: number,
+  fiber: Fiber,
+  phase: RawRenderRecord["phase"],
+) => {
+  const instanceElements = session.componentElements.get(componentTypeId);
+  const previousElements = instanceElements?.get(fiberId);
+
+  if (phase === "unmount") {
+    if (!instanceElements || !previousElements) return;
+    session.highlightElementCount -= previousElements.length;
+    instanceElements.delete(fiberId);
+    if (instanceElements.size === 0) session.componentElements.delete(componentTypeId);
+    return;
+  }
+
+  if (previousElements) return;
+
+  const nextElements = collectReportElements(session, fiber);
+  if (nextElements.length === 0) return;
+  const nextInstanceElements = instanceElements ?? new Map<number, Array<Element>>();
+  nextInstanceElements.set(fiberId, nextElements);
+  if (!instanceElements) session.componentElements.set(componentTypeId, nextInstanceElements);
+};
+
+const saveRawRecordElements = (session: ReportSessionState, sequence: number, fiber: Fiber) => {
+  const elements = collectReportElements(session, fiber);
+  if (elements.length > 0) session.rawRecordElements.set(sequence, elements);
+};
 
 const saveReportElements = (session: ReportSessionState) => {
+  const rawRecordElements = new Map<number, Array<Element>>();
+  for (const [sequence, elements] of session.rawRecordElements) {
+    const connectedElements = elements.filter((element) => element.isConnected);
+    if (connectedElements.length > 0) rawRecordElements.set(sequence, connectedElements);
+  }
+
   lastReportElements = {
     sessionId: session.sessionId,
     componentElements: new Map(
-      Array.from(session.componentElements, ([componentTypeId, elements]) => [
+      Array.from(session.componentElements, ([componentTypeId, instanceElements]) => [
         componentTypeId,
-        Array.from(elements),
+        Array.from(instanceElements.values())
+          .flat()
+          .filter((element) => element.isConnected),
       ]),
     ),
-    rawRecordElements: new Map(session.rawRecordElements),
+    rawRecordElements,
   };
 };
 
@@ -732,6 +793,7 @@ const releaseSessionMemory = (session: ReportSessionState, report: ScanSessionRe
   session.componentTreeNodes.clear();
   session.componentElements.clear();
   session.rawRecordElements.clear();
+  session.highlightElementCount = 0;
   session.scope = undefined;
 
   // Raw reports intentionally retain their record array as the published result.
@@ -789,25 +851,34 @@ export const recordReportRender = (fiber: Fiber, renders: Array<Render>) => {
   if (scopeMatch.rootFiberId !== null) {
     session.matchedScopeRootIds.add(scopeMatch.rootFiberId);
   }
-  const elements = getReportElements(fiber);
-  const componentName = getComponentName(fiber);
-  const parentComponentFiber = getParentComponentFiber(fiber);
   const treeNode = ensureComponentTreeNode(session, fiber);
-  const parentFiberId = parentComponentFiber ? getFiberId(parentComponentFiber) : null;
+  const componentName = treeNode?.componentName ?? getComponentName(fiber);
 
   let componentTypeId: string | undefined;
   let fiberId: number | undefined;
+  let parentFiberId: number | null | undefined;
   const getRecordIdentity = () => {
-    componentTypeId ??= getComponentTypeId(session, fiber);
-    fiberId ??= getFiberId(fiber);
+    componentTypeId ??= treeNode?.componentTypeId ?? getComponentTypeId(session, fiber);
+    fiberId ??= treeNode?.fiberId ?? getFiberId(fiber);
     return { componentTypeId, fiberId };
+  };
+  const getRecordParentFiberId = () => {
+    if (parentFiberId !== undefined) return parentFiberId;
+    if (treeNode) {
+      parentFiberId = treeNode.parentFiberId;
+      return parentFiberId;
+    }
+    const parentComponentFiber = getParentComponentFiber(fiber);
+    parentFiberId = parentComponentFiber ? getFiberId(parentComponentFiber) : null;
+    return parentFiberId;
   };
 
   for (const render of renders) {
     const phase = getPhaseName(render.phase);
-    if (treeNode) recordTreeNodeRender(treeNode, render);
-    if (phase === "unmount") session.observedUnmountCount++;
-    else session.observedRenderCount++;
+    const renderCount = getRenderCount(render);
+    if (treeNode) recordTreeNodeRender(treeNode, render, renderCount);
+    if (phase === "unmount") session.observedUnmountCount += renderCount;
+    else session.observedRenderCount += renderCount;
 
     if (session.reportOptions.mode === "raw") {
       const maxRecords = session.reportOptions.maxRecords ?? DEFAULT_RAW_REPORT_MAX_RECORDS;
@@ -819,16 +890,17 @@ export const recordReportRender = (fiber: Fiber, renders: Array<Render>) => {
           timestamp: Date.now(),
           commitIndex: session.commitIndex,
           ...identity,
-          parentFiberId,
+          parentFiberId: getRecordParentFiberId(),
           componentName,
           phase,
+          renderCount,
           selfTime: render.selfTime,
           totalTime: render.totalTime,
           fps: render.fps,
           didCommit: render.didCommit,
           reasons: createRenderReasons(render),
         });
-        session.rawRecordElements.set(sequence, elements);
+        if (phase !== "unmount") saveRawRecordElements(session, sequence, fiber);
       } else {
         session.droppedRecordCount++;
       }
@@ -852,23 +924,21 @@ export const recordReportRender = (fiber: Fiber, renders: Array<Render>) => {
       };
       session.componentSummaries.set(identity.componentTypeId, summary);
     }
+    const isNewInstance = !summary.fiberIds.has(identity.fiberId);
     summary.fiberIds.add(identity.fiberId);
-    let componentElements = session.componentElements.get(identity.componentTypeId);
-    if (!componentElements) {
-      componentElements = new Set<Element>();
-      session.componentElements.set(identity.componentTypeId, componentElements);
+    if (isNewInstance || phase === "unmount") {
+      updateComponentElements(session, identity.componentTypeId, identity.fiberId, fiber, phase);
     }
-    for (const element of elements) componentElements.add(element);
-    if (phase === "mount") summary.mountCount++;
-    else if (phase === "update") summary.updateCount++;
-    else summary.unmountCount++;
+    if (phase === "mount") summary.mountCount += renderCount;
+    else if (phase === "update") summary.updateCount += renderCount;
+    else summary.unmountCount += renderCount;
     if (phase !== "unmount") {
       const selfTime = render.selfTime ?? 0;
       summary.totalSelfTime += selfTime;
       summary.maxSelfTime = Math.max(summary.maxSelfTime, selfTime);
       summary.totalTime += render.totalTime ?? 0;
     }
-    recordSummaryReasons(summary, render);
+    recordSummaryReasons(summary, render, renderCount);
   }
 
   return true;

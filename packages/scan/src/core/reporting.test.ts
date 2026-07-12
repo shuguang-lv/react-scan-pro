@@ -5,6 +5,7 @@ import { ChangeReason, type Render, RenderPhase } from "./instrumentation";
 import {
   beginReportCommit,
   clearLastReport,
+  createReportValuePreview,
   ensureReportSession,
   getLastReport,
   isReportSessionActive,
@@ -31,13 +32,14 @@ const createRender = (
   changes: Array<PropsChange> = [],
   phase = RenderPhase.Update,
   componentName: string | null = "Component",
+  count = 1,
 ): Render => ({
   phase,
   componentName,
   time: selfTime,
   selfTime,
   totalTime: selfTime * 2,
-  count: 1,
+  count,
   forget: false,
   changes,
   parentRendered: false,
@@ -99,6 +101,70 @@ describe("reporting", () => {
       totalTime: 12,
     });
     expect(report.prompt).toContain("React Scan Pro");
+  });
+
+  it("keeps weighted render counts consistent across metadata, list, and tree", () => {
+    const WeightedComponent = () => null;
+    const propChange: PropsChange = {
+      type: ChangeReason.Props,
+      name: "value",
+      prevValue: "before",
+      value: "after",
+    };
+    const onComplete = vi.fn();
+    const enabled: Options = { enabled: true, report: { onComplete } };
+
+    syncReportSession({ enabled: false }, enabled);
+    recordReportRender(createFiber(WeightedComponent), [
+      createRender(6, [propChange], RenderPhase.Update, "WeightedComponent", 3),
+    ]);
+    syncReportSession(enabled, { enabled: false });
+
+    const report = onComplete.mock.calls[0]?.[0];
+    expect(report.metadata.observedRenderCount).toBe(3);
+    expect(report.components[0]).toMatchObject({
+      renderCount: 3,
+      updateCount: 3,
+      totalSelfTime: 6,
+      averageSelfTime: 2,
+      totalTime: 12,
+      averageTotalTime: 4,
+    });
+    expect(report.components[0].reasons[0]).toMatchObject({ count: 3, unstableCount: 0 });
+    expect(report.componentTree[0]).toMatchObject({
+      renderCount: 3,
+      subtreeRenderCount: 3,
+      updateCount: 3,
+      totalSelfTime: 6,
+      totalTime: 12,
+    });
+  });
+
+  it("preserves weighted counts in raw records and excludes unmounts from timings", () => {
+    const onComplete = vi.fn();
+    const enabled: Options = { enabled: true, report: { mode: "raw", onComplete } };
+    const fiber = createFiber();
+
+    syncReportSession({ enabled: false }, enabled);
+    recordReportRender(fiber, [
+      createRender(8, [], RenderPhase.Mount, "Component", 4),
+      createRender(20, [], RenderPhase.Unmount, "Component", 2),
+    ]);
+    syncReportSession(enabled, { enabled: false });
+
+    const report = onComplete.mock.calls[0]?.[0];
+    expect(report.metadata).toMatchObject({ observedRenderCount: 4, observedUnmountCount: 2 });
+    expect(report.renders).toEqual([
+      expect.objectContaining({ phase: "mount", renderCount: 4 }),
+      expect.objectContaining({ phase: "unmount", renderCount: 2 }),
+    ]);
+    expect(report.componentTree[0]).toMatchObject({
+      renderCount: 4,
+      mountCount: 4,
+      unmountCount: 2,
+      totalSelfTime: 8,
+      totalTime: 16,
+    });
   });
 
   it("resolves wrapper, debug, and owner names before falling back to Anonymous", () => {
@@ -179,6 +245,33 @@ describe("reporting", () => {
       didRender: true,
       renderCount: 1,
     });
+  });
+
+  it("aggregates structural branches without double-counting inclusive parent time", () => {
+    const Parent = () => null;
+    const FirstChild = () => null;
+    const SecondChild = () => null;
+    const parentFiber = createFiber(Parent);
+    const firstChildFiber = createFiber(FirstChild, parentFiber);
+    const secondChildFiber = createFiber(SecondChild, parentFiber);
+    const onComplete = vi.fn();
+    const enabled: Options = { enabled: true, report: { onComplete } };
+
+    syncReportSession({ enabled: false }, enabled);
+    recordReportRender(parentFiber, [createRender(5, [], RenderPhase.Update, "Parent")]);
+    recordReportRender(firstChildFiber, [createRender(3, [], RenderPhase.Update, "FirstChild")]);
+    recordReportRender(secondChildFiber, [createRender(2, [], RenderPhase.Update, "SecondChild")]);
+    syncReportSession(enabled, { enabled: false });
+
+    const parentNode = onComplete.mock.calls[0]?.[0].componentTree[0];
+    expect(parentNode).toMatchObject({
+      componentName: "Parent",
+      renderCount: 1,
+      subtreeRenderCount: 3,
+      totalSelfTime: 5,
+      totalTime: 10,
+    });
+    expect(parentNode.children).toHaveLength(2);
   });
 
   it("uses summary mode for listeners without report options and supports unsubscribe", () => {
@@ -326,6 +419,24 @@ describe("reporting", () => {
       renderCount: 2,
       instanceCount: 2,
     });
+    const mergedReport = merged.mock.calls[0]?.[0];
+    const mergedSummary = mergedReport.components[0];
+    const instanceNodes = mergedReport.componentTree.filter(
+      (node: { componentTypeId: string }) => node.componentTypeId === mergedSummary.componentTypeId,
+    );
+    expect(instanceNodes).toHaveLength(2);
+    expect(
+      instanceNodes.reduce(
+        (total: number, node: { renderCount: number }) => total + node.renderCount,
+        0,
+      ),
+    ).toBe(mergedSummary.renderCount);
+    expect(
+      instanceNodes.reduce(
+        (total: number, node: { totalSelfTime: number }) => total + node.totalSelfTime,
+        0,
+      ),
+    ).toBe(mergedSummary.totalSelfTime);
   });
 
   it("returns JSON-safe bounded reason previews and deterministic prompts", () => {
@@ -371,5 +482,10 @@ describe("reporting", () => {
       type: "react-element",
       preview: "[ReactElement button]",
     });
+
+    const sharedValue = { value: 1 };
+    expect(createReportValuePreview({ first: sharedValue, second: sharedValue }).preview).toBe(
+      "{first: {value: 1}, second: {value: 1}}",
+    );
   });
 });

@@ -1,5 +1,14 @@
 # react-scan-pro
 
+## 0.1.7
+
+### Patch Changes
+
+- Keep metadata, List, Tree, and Raw report counts consistent with aggregated render counts.
+- Clarify type-level averages versus instance-level totals and preserve Raw render counts.
+- Bound DOM highlight traversal and retained element references while releasing unmounted elements.
+- Fix shared value previews being incorrectly marked as circular references.
+
 ## 0.1.6
 
 ### Patch Changes

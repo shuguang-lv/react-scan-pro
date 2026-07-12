@@ -49,10 +49,16 @@ test.describe("Session report panel", () => {
   });
 
   test("switches to the component tree and focuses a subtree", async ({ page }) => {
+    const summaryRow = page.locator(
+      '[data-testid="summary-report-row"][data-component-name="ScriptReportCounter"]',
+    );
+    const summaryRenderCount = await summaryRow.getAttribute("data-render-count");
+    expect(summaryRenderCount).not.toBeNull();
     await page.getByTitle("Show tree view").click();
 
     await expect(page.getByTestId("summary-report-tree")).toContainText("ScriptReportCounter");
     const renderedTreeRow = page.locator('[data-component-name="ScriptReportCounter"]');
+    await expect(renderedTreeRow).toHaveAttribute("data-render-count", summaryRenderCount ?? "");
     await expect(renderedTreeRow).not.toHaveAttribute("data-render-count", "0");
     await expect(renderedTreeRow).not.toHaveAttribute("data-self-time", "0");
     await expect(renderedTreeRow).not.toHaveAttribute("data-subtree-time", "0");

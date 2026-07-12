@@ -342,9 +342,11 @@ const TreeReportView = ({ roots, omittedTreeNodeCount }: TreeReportViewProps) =>
             <span className="ml-2 text-amber-500">{omittedTreeNodeCount} omitted</span>
           )}
         </div>
-        <span className="w-16 text-right">Renders</span>
-        <span className="ml-3 w-14 text-right">Self</span>
-        <span className="ml-3 w-14 text-right">Subtree</span>
+        <span className="w-16 text-right" title="Renders for this component instance">
+          Renders
+        </span>
+        <span className="ml-3 w-16 text-right">Self total</span>
+        <span className="ml-3 w-20 text-right">Subtree total</span>
       </div>
       {visibleRoots.length === 0 ? (
         <div className="p-6 text-center text-[10px] text-zinc-600">No renders in this session.</div>
@@ -449,14 +451,14 @@ const TreeRow = ({ node, depth, maxTime, expandedNodeIds, onToggle, onFocus }: T
         </span>
         <span
           className={cn(
-            "relative ml-3 w-14 text-right",
+            "relative ml-3 w-16 text-right",
             isAncestorPath ? "text-zinc-700" : "text-zinc-500",
           )}
           title={isAncestorPath ? "This ancestor did not render" : undefined}
         >
           {isAncestorPath ? "-" : formatDuration(displayedNode.totalSelfTime)}
         </span>
-        <span className="relative ml-3 w-14 text-right text-zinc-400">
+        <span className="relative ml-3 w-20 text-right text-zinc-400">
           {formatDuration(displayedNode.totalTime)}
         </span>
       </div>
@@ -478,6 +480,11 @@ const TreeRow = ({ node, depth, maxTime, expandedNodeIds, onToggle, onFocus }: T
 
 const SummaryRow = ({ item }: { item: ComponentRenderSummary }) => (
   <div
+    data-testid="summary-report-row"
+    data-component-name={item.componentName}
+    data-render-count={item.renderCount}
+    data-average-self-time={item.averageSelfTime}
+    data-average-subtree-time={item.averageTotalTime}
     className="border-b border-[#202024] px-3 py-2 hover:bg-[#141416]"
     onMouseEnter={() => {
       void highlightElements(item.componentName, getLastReportElements(item.componentTypeId));
@@ -558,6 +565,7 @@ const RawRow = ({ record, top }: { record: RawRenderRecord; top: number }) => (
       <span className="rounded-sm bg-[#27272A] px-1 text-[8px] uppercase text-zinc-400">
         {record.phase}
       </span>
+      {record.renderCount > 1 && <span className="text-zinc-400">×{record.renderCount}</span>}
       <span className="text-zinc-500">commit {record.commitIndex}</span>
     </div>
     <div className="mt-1 flex gap-x-3 text-zinc-500">
